@@ -39,21 +39,18 @@ class ItemForm
                 ->prefix('Rp')
                 ->required()
                 ->numeric()
-                ->default(0)
                 ->mask(RawJs::make('$money($input)'))
                 ->stripCharacters(','),
             TextInput::make('harga_jual_retail')
                 ->prefix('Rp')
                 ->required()
                 ->numeric()
-                ->default(0)
                 ->mask(RawJs::make('$money($input)'))
                 ->stripCharacters(','),
             TextInput::make('harga_jual_grosir')
                 ->prefix('Rp')
                 ->required()
                 ->numeric()
-                ->default(0)
                 ->mask(RawJs::make('$money($input)'))
                 ->stripCharacters(','),
             TextInput::make('min_grosir_qty')
