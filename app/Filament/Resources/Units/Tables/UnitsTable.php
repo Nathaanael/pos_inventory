@@ -16,8 +16,6 @@ class UnitsTable
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),
-                TextColumn::make('abbreviation')
-                    ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -31,11 +29,17 @@ class UnitsTable
                 //
             ])
             ->recordActions([
-                EditAction::make(),
+                \Filament\Actions\EditAction::make()
+                    ->modalAlignment('center'),
+                \Filament\Actions\DeleteAction::make(),
+                \Filament\Actions\RestoreAction::make()
+                    ->visible(fn ($record) => $record->trashed()),
+                \Filament\Actions\ForceDeleteAction::make()
+                    ->visible(fn ($record) => $record->trashed()),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                \Filament\Actions\BulkActionGroup::make([
+                    \Filament\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }

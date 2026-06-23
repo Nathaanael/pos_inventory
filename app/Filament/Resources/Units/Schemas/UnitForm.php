@@ -12,8 +12,8 @@ class UnitForm
         return $schema
             ->components([
                 TextInput::make('name')
-                    ->required(),
-                TextInput::make('abbreviation'),
+                    ->required()
+                    ->columnSpanFull(),
             ]);
     }
 }

@@ -18,7 +18,9 @@ class UnitResource extends Resource
 {
     protected static ?string $model = Unit::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedScale;
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {
@@ -41,8 +43,22 @@ class UnitResource extends Resource
     {
         return [
             'index' => ListUnits::route('/'),
-            'create' => CreateUnit::route('/create'),
-            'edit' => EditUnit::route('/{record}/edit'),
         ];
+    }
+
+    public static function getRecordRouteBindingEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getRecordRouteBindingEloquentQuery()
+            ->withoutGlobalScopes([
+                \Illuminate\Database\Eloquent\SoftDeletingScope::class,
+            ]);
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                \Illuminate\Database\Eloquent\SoftDeletingScope::class,
+            ]);
     }
 }
