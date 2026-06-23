@@ -20,6 +20,8 @@ class UnitResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedScale;
 
+    protected static \UnitEnum|string|null $navigationGroup = 'Data Management';
+
     protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema

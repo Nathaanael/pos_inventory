@@ -18,7 +18,9 @@ class SupplierResource extends Resource
 {
     protected static ?string $model = Supplier::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-storefront';
+
+    protected static \UnitEnum|string|null $navigationGroup = 'Data Management';
 
     protected static ?int $navigationSort = 3;
 

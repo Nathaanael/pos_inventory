@@ -18,7 +18,9 @@ class ReturnTransactionResource extends Resource
 {
     protected static ?string $model = ReturnTransaction::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-arrow-path';
+
+    protected static \UnitEnum|string|null $navigationGroup = 'Inventory';
 
     protected static ?int $navigationSort = 8;
 

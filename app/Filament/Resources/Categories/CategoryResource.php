@@ -18,6 +18,8 @@ class CategoryResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
 
+    protected static \UnitEnum|string|null $navigationGroup = 'Data Management';
+
     protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema

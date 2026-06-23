@@ -18,7 +18,9 @@ class StockOpnameResource extends Resource
 {
     protected static ?string $model = StockOpname::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-check';
+
+    protected static \UnitEnum|string|null $navigationGroup = 'Inventory';
 
     protected static ?int $navigationSort = 7;
 
