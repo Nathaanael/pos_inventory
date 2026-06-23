@@ -25,6 +25,7 @@ class SupplierForm
                     ->label('Nama Supplier')
                     ->required()
                     ->maxLength(150)
+                    ->autofocus()
                     ->placeholder('Masukkan nama supplier'),
                 Section::make('Informasi Kontak')
                     ->description('Opsional — isi jika diperlukan')
