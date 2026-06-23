@@ -1,0 +1,1 @@
+<?php namespace App\Models; use Illuminate\Database\Eloquent\Model; class Outbound extends Model { protected $guarded = []; public function createdBy() { return $this->belongsTo(User::class, 'created_by'); } public function items() { return $this->hasMany(OutboundItem::class); } }

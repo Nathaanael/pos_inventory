@@ -1,0 +1,1 @@
+<?php namespace App\Models; use Illuminate\Database\Eloquent\Model; class Supplier extends Model { protected $guarded = []; public function items() { return $this->belongsToMany(Item::class, 'item_supplier')->withPivot('supplier_sku', 'default_buy_price', 'is_primary')->withTimestamps(); } public function inbounds() { return $this->hasMany(Inbound::class); } }

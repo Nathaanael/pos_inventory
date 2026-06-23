@@ -1,0 +1,1 @@
+<?php namespace App\Models; use Illuminate\Database\Eloquent\Model; class Inbound extends Model { protected $guarded = []; public function supplier() { return $this->belongsTo(Supplier::class); } public function createdBy() { return $this->belongsTo(User::class, 'created_by'); } public function items() { return $this->hasMany(InboundItem::class); } }
