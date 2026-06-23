@@ -13,7 +13,8 @@ class EditCategory extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            \Filament\Actions\ForceDeleteAction::make(),
+            \Filament\Actions\RestoreAction::make(),
         ];
     }
 }

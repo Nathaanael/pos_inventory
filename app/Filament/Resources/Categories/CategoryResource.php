@@ -18,7 +18,7 @@ class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
 
     public static function form(Schema $schema): Schema
     {
@@ -44,5 +44,21 @@ class CategoryResource extends Resource
             'create' => CreateCategory::route('/create'),
             'edit' => EditCategory::route('/{record}/edit'),
         ];
+    }
+
+    public static function getRecordRouteBindingEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getRecordRouteBindingEloquentQuery()
+            ->withoutGlobalScopes([
+                \Illuminate\Database\Eloquent\SoftDeletingScope::class,
+            ]);
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                \Illuminate\Database\Eloquent\SoftDeletingScope::class,
+            ]);
     }
 }
