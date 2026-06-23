@@ -24,7 +24,6 @@ class AdminPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->default()
             ->id('admin')
             ->path('admin')
             ->brandName('Wahyu Jaya Electric')
@@ -33,6 +32,7 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Amber,
             ])
             ->sidebarFullyCollapsibleOnDesktop()
+            ->collapsibleNavigationGroups(false)
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
@@ -46,6 +46,14 @@ class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 'Data Management',
                 'Inventory',
+                'Aplikasi',
+            ])
+            ->navigationItems([
+                \Filament\Navigation\NavigationItem::make('Kembali ke Portal')
+                    ->url('/')
+                    ->icon('heroicon-o-arrow-left-circle')
+                    ->group('Aplikasi')
+                    ->sort(99),
             ])
             ->middleware([
                 EncryptCookies::class,
