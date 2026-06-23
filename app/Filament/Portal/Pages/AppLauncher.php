@@ -18,7 +18,7 @@ class AppLauncher extends Page
 
     public function getTitle(): string
     {
-        return 'Pilih Aplikasi';
+        return '';
     }
 }
 
