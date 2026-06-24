@@ -41,6 +41,28 @@ class ItemsTable
                 TextColumn::make('current_stock')
                     ->numeric()
                     ->sortable(),
+                TextColumn::make('latestMovement.type')
+                    ->label('Aktivitas Terakhir')
+                    ->badge()
+                    ->getStateUsing(function ($record) {
+                        $movement = $record->latestMovement;
+                        if (!$movement) return null;
+                        $hoursDiff = now()->diffInHours($movement->created_at);
+                        if ($hoursDiff > 24) return null;
+                        return match ($movement->type) {
+                            'inbound' => 'Inbound (' . $movement->quantity . ')',
+                            'return_out' => 'Retur (-' . abs($movement->quantity) . ')',
+                            'adjustment' => 'Adjustment (' . $movement->quantity . ')',
+                            default => ucfirst($movement->type),
+                        };
+                    })
+                    ->color(fn ($state) => match (true) {
+                        str_contains($state ?? '', 'Inbound') => 'success',
+                        str_contains($state ?? '', 'Retur') => 'danger',
+                        str_contains($state ?? '', 'Adjustment') => 'info',
+                        default => 'gray',
+                    })
+                    ->placeholder('-'),
                 TextColumn::make('rack_location')
                     ->searchable(),
                 IconColumn::make('is_active')
