@@ -57,6 +57,7 @@ class OutboundsTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->columnManager(false);
     }
 }

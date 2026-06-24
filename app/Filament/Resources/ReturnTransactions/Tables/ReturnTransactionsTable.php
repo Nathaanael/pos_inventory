@@ -58,6 +58,7 @@ class ReturnTransactionsTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->columnManager(false);
     }
 }
