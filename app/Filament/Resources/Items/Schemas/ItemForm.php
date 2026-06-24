@@ -10,6 +10,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Select;
 use Filament\Schemas\Schema;
 use Filament\Support\RawJs;
+use Marcelorodrigo\FilamentBarcodeScannerField\Forms\Components\BarcodeInput;
 
 class ItemForm
 {
@@ -23,7 +24,9 @@ class ItemForm
                 ->readOnly()
                 ->dehydrated()
                 ->maxLength(20),
-            TextInput::make('barcode'),
+            BarcodeInput::make('barcode')
+                ->label('Barcode')
+                ->placeholder('Scan atau ketik barcode...'),
             TextInput::make('name')
                 ->required()
                 ->autofocus(),

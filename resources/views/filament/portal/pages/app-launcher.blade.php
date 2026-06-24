@@ -178,7 +178,7 @@
             </div>
             </a>
 
-            <a href="/admin" class="wje-card">
+            <a href="{{ url('admin') }}" class="wje-card">
             <div class="wje-card-icon blue">
                 <x-heroicon-o-clipboard-document-check />
             </div>
