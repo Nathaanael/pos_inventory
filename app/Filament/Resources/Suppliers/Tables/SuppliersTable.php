@@ -41,6 +41,7 @@ class SuppliersTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->columnManager(false);
     }
 }

@@ -94,6 +94,7 @@ class StockOpnamesTable
                 // BulkActionGroup::make([
                 //     DeleteBulkAction::make(),
                 // ]),
-            ]);
+            ])
+            ->columnManager(false);
     }
 }

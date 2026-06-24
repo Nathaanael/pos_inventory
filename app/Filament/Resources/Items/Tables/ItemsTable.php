@@ -94,7 +94,8 @@ class ItemsTable
                     ->form(ItemViewForm::schema())
                     ->modalAutofocus(false),
                 EditAction::make(),
-            ]);
+            ])
+            ->columnManager(false);
             // ->toolbarActions([
             //     BulkActionGroup::make([
             //         DeleteBulkAction::make(),

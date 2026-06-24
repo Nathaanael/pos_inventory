@@ -127,6 +127,7 @@ class ReturnTransactionsTable
                         })
                         ->deselectRecordsAfterCompletion(),
                 ]),
-            ]);
+            ])
+            ->columnManager(false);
     }
 }

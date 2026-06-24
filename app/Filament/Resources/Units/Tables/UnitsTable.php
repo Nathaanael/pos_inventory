@@ -41,6 +41,7 @@ class UnitsTable
                 \Filament\Actions\BulkActionGroup::make([
                     \Filament\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->columnManager(false);
     }
 }

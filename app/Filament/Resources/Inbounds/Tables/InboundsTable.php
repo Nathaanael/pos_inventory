@@ -56,7 +56,8 @@ class InboundsTable
                     ->form(InboundViewForm::schema())
                     ->modalAutofocus(false),
                 EditAction::make(),
-            ]);
+            ])
+            ->columnManager(false);
             // ->toolbarActions([
             //     BulkActionGroup::make([
             //         DeleteBulkAction::make(),
