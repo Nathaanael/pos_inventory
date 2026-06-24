@@ -8,8 +8,11 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Group;
 use Filament\Schemas\Schema;
 use Filament\Support\RawJs;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
 use Marcelorodrigo\FilamentBarcodeScannerField\Forms\Components\BarcodeInput;
 
 class ItemForm
@@ -58,8 +61,7 @@ class ItemForm
                 ->stripCharacters(','),
             TextInput::make('min_grosir_qty')
                 ->required()
-                ->numeric()
-                ->default(0),
+                ->numeric(),
             TextInput::make('current_stock')
                 ->required()
                 ->numeric()
@@ -68,8 +70,7 @@ class ItemForm
                 ->dehydrated(),
             TextInput::make('min_stock')
                 ->required()
-                ->numeric()
-                ->default(0),
+                ->numeric(),
             TextInput::make('rack_location'),
             FileUpload::make('image')
                 ->image(),

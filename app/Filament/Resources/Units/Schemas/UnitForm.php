@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Units\Schemas;
 
-use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
 use Filament\Schemas\Schema;
 
 class UnitForm
@@ -11,7 +11,12 @@ class UnitForm
     {
         return $schema
             ->components([
-                TextInput::make('name')
+                Select::make('name')
+                    ->options([
+                        'pcs' => 'Pcs',
+                        'meter' => 'Meter',
+                        'yard' => 'Yard',
+                    ])
                     ->required()
                     ->columnSpanFull(),
             ]);

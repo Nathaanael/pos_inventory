@@ -2,15 +2,18 @@
 
 namespace App\Filament\Resources\Items\Tables;
 
+use App\Filament\Resources\Items\Schemas\ItemViewForm;
+
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class ItemsTable
@@ -18,6 +21,8 @@ class ItemsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->recordAction('view')
+            ->recordUrl(null)
             ->columns([
                 TextColumn::make('code')
                     ->searchable(),
@@ -25,33 +30,15 @@ class ItemsTable
                     ->searchable(),
                 TextColumn::make('name')
                     ->searchable(),
-                TextColumn::make('category_id')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('unit_id')
-                    ->numeric()
-                    ->sortable(),
                 TextColumn::make('harga_beli')
                     ->numeric()
-                    ->sortable(),
-                TextColumn::make('harga_jual_retail')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('harga_jual_grosir')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('min_grosir_qty')
-                    ->numeric()
+                    ->prefix('Rp ')
                     ->sortable(),
                 TextColumn::make('current_stock')
                     ->numeric()
                     ->sortable(),
-                TextColumn::make('min_stock')
-                    ->numeric()
-                    ->sortable(),
                 TextColumn::make('rack_location')
                     ->searchable(),
-                ImageColumn::make('image'),
                 IconColumn::make('is_active')
                     ->boolean(),
                 TextColumn::make('created_at')
@@ -68,9 +55,16 @@ class ItemsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                TrashedFilter::make(),
+                TernaryFilter::make('is_active')
+                    ->label('Status Aktif')
+                    ->trueLabel('Aktif')
+                    ->falseLabel('Tidak Aktif')
+                    ->placeholder('Semua'),
             ])
             ->recordActions([
+                ViewAction::make()
+                    ->modalWidth('7xl')
+                    ->form(ItemViewForm::schema()),
                 EditAction::make(),
             ])
             ->toolbarActions([
