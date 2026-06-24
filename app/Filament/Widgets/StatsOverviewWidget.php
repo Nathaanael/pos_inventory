@@ -79,7 +79,7 @@ class StatsOverviewWidget extends BaseWidget
                 ->color('info')
                 ->chart([7, 2, 10, 3, 15, 4, 17]),
                 
-            Stat::make('Alert Stok Menipis', $lowStockCount . ' Barang')
+            Stat::make('Stok Menipis', $lowStockCount . ' Barang')
                 ->description($lowStockCount > 0 ? 'Perlu restock segera' : 'Stok aman')
                 ->descriptionIcon($lowStockCount > 0 ? 'heroicon-m-exclamation-triangle' : 'heroicon-m-check-badge')
                 ->color($lowStockCount > 0 ? 'danger' : 'success'),
