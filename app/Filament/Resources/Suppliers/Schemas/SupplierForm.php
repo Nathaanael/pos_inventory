@@ -31,6 +31,7 @@ class SupplierForm
                     ->description('Opsional — isi jika diperlukan')
                     ->collapsible()
                     ->collapsed()
+                    ->columnSpanFull()
                     ->schema([
                         TextInput::make('phone')
                             ->label('Telepon')

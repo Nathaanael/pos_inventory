@@ -15,9 +15,11 @@ class ItemViewForm
     public static function schema(): array
     {
         return [
-            Grid::make(3)
-                ->columnSpan('full')
+            \Filament\Schemas\Components\Group::make()
                 ->schema([
+                    Grid::make(3)
+                        ->columnSpan('full')
+                        ->schema([
                     Section::make('Informasi Utama')
                         ->columns(1)
                         ->schema([
@@ -57,8 +59,14 @@ class ItemViewForm
                             Textarea::make('description'),
                             FileUpload::make('image')
                                 ->image(),
+                            Select::make('suppliers')
+                                ->label('Supplier')
+                                ->multiple()
+                                ->relationship('suppliers', 'name')
+                                ->preload(),
                         ]),
-                ])
+                ]),
+            ])
         ];
     }
 }

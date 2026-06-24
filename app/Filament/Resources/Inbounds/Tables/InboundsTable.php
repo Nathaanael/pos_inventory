@@ -15,21 +15,24 @@ class InboundsTable
         return $table
             ->columns([
                 TextColumn::make('transaction_code')
-                    ->searchable(),
+                    ->label('Kode Transaksi')
+                    ->searchable()
+                    ->copyable(),
                 TextColumn::make('date')
-                    ->date()
+                    ->label('Tanggal')
+                    ->date('d F Y')
                     ->sortable(),
-                TextColumn::make('supplier_id')
+                TextColumn::make('supplier.name')
+                    ->label('Supplier')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('total_amount')
+                    ->label('Total Nominal')
                     ->numeric()
+                    ->prefix('Rp ')
                     ->sortable(),
                 TextColumn::make('status')
                     ->badge(),
-                TextColumn::make('total_amount')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('created_by')
-                    ->numeric()
-                    ->sortable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

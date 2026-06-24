@@ -20,10 +20,6 @@ class SuppliersTable
                     ->searchable(),
                 TextColumn::make('name')
                     ->searchable(),
-                TextColumn::make('contact_person')
-                    ->searchable(),
-                TextColumn::make('phone')
-                    ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

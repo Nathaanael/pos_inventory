@@ -26,6 +26,7 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->id('admin')
             ->path('admin')
+            ->spa()
             ->brandName('Wahyu Jaya Electric')
             ->login()
             ->colors([

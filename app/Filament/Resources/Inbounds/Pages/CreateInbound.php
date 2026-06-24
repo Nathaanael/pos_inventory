@@ -8,4 +8,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateInbound extends CreateRecord
 {
     protected static string $resource = InboundResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

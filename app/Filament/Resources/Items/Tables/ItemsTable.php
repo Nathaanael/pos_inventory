@@ -30,6 +30,10 @@ class ItemsTable
                     ->searchable(),
                 TextColumn::make('name')
                     ->searchable(),
+                TextColumn::make('suppliers.name')
+                    ->label('Supplier')
+                    ->badge()
+                    ->searchable(),
                 TextColumn::make('harga_beli')
                     ->numeric()
                     ->prefix('Rp ')
@@ -63,16 +67,18 @@ class ItemsTable
             ])
             ->recordActions([
                 ViewAction::make()
-                    ->modalWidth('7xl')
-                    ->form(ItemViewForm::schema()),
+                    ->slideOver()
+                    ->modalWidth('6xl')
+                    ->form(ItemViewForm::schema())
+                    ->modalAutofocus(false),
                 EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
-                ]),
             ]);
+            // ->toolbarActions([
+            //     BulkActionGroup::make([
+            //         DeleteBulkAction::make(),
+            //         ForceDeleteBulkAction::make(),
+            //         RestoreBulkAction::make(),
+            //     ]),
+            // ]);
     }
 }

@@ -33,6 +33,11 @@ class ItemForm
             TextInput::make('name')
                 ->required()
                 ->autofocus(),
+            Select::make('suppliers')
+                ->label('Supplier')
+                ->multiple()
+                ->relationship('suppliers', 'name')
+                ->preload(),
             Textarea::make('description')
                 ->columnSpanFull(),
             Select::make('category_id')
