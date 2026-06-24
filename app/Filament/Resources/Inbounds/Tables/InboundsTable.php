@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources\Inbounds\Tables;
 
+use App\Filament\Resources\Inbounds\Schemas\InboundViewForm;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -13,6 +15,8 @@ class InboundsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->recordAction('view')
+            ->recordUrl(null)
             ->columns([
                 TextColumn::make('transaction_code')
                     ->label('Kode Transaksi')
@@ -46,12 +50,17 @@ class InboundsTable
                 //
             ])
             ->recordActions([
+                ViewAction::make()
+                    ->slideOver()
+                    ->modalWidth('6xl')
+                    ->form(InboundViewForm::schema())
+                    ->modalAutofocus(false),
                 EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
             ]);
+            // ->toolbarActions([
+            //     BulkActionGroup::make([
+            //         DeleteBulkAction::make(),
+            //     ]),
+            // ]);
     }
 }
