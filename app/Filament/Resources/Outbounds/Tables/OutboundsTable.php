@@ -54,6 +54,37 @@ class OutboundsTable
                     ->modalWidth('6xl')
                     ->form(OutboundViewForm::schema())
                     ->modalAutofocus(false),
+                Action::make('print_nota')
+                    ->label('Print Nota')
+                    ->icon('heroicon-o-printer')
+                    ->color('info')
+                    ->requiresConfirmation()
+                    ->modalHeading('Cetak Nota')
+                    ->modalDescription('Cetak nota langsung ke printer thermal?')
+                    ->action(function ($record) {
+                        try {
+                            $record->load(['items.item.unit', 'createdBy']);
+                            app(\App\Services\ThermalPrintService::class)->printOutboundReceipt($record);
+                            \Filament\Notifications\Notification::make()
+                                ->title('Nota berhasil dicetak!')
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Gagal cetak nota')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    })
+                    ->visible(fn ($record) => $record->status->value === 'selesai'),
+                Action::make('preview_nota')
+                    ->label('Preview')
+                    ->icon('heroicon-o-eye')
+                    ->color('gray')
+                    ->url(fn ($record) => route('outbound.print', $record))
+                    ->openUrlInNewTab()
+                    ->visible(fn ($record) => $record->status->value === 'selesai'),
                 EditAction::make()
                     ->visible(fn ($record) => $record->status->value === 'pending'),
                 Action::make('approve')

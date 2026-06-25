@@ -45,7 +45,8 @@ class ItemForm
                 ->label('Supplier')
                 ->multiple()
                 ->relationship('suppliers', 'name')
-                ->preload(),
+                ->preload()
+                ->required(),
             Textarea::make('description')
                 ->columnSpanFull(),
             Select::make('category_id')

@@ -10,11 +10,13 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class PortalPanelProvider extends PanelProvider
@@ -36,6 +38,11 @@ class PortalPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Portal/Widgets'), for: 'App\Filament\Portal\Widgets')
             ->widgets([])
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn () => new HtmlString('<link rel="manifest" href="/manifest.json"><meta name="theme-color" content="#f59e0b">')
+            )
+
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -52,3 +59,4 @@ class PortalPanelProvider extends PanelProvider
             ]);
     }
 }
+

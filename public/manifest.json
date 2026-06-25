@@ -1,0 +1,17 @@
+{
+    "name": "Wahyu Jaya Electric - Inventory",
+    "short_name": "WJE Inventory",
+    "description": "Sistem Inventory & Stock Opname Wahyu Jaya Electric",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#1a1a2e",
+    "theme_color": "#f59e0b",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "/favicon.ico",
+            "sizes": "64x64",
+            "type": "image/x-icon"
+        }
+    ]
+}

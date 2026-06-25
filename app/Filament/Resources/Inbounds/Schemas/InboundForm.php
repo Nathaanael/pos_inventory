@@ -82,22 +82,40 @@ class InboundForm
                 ->schema([
                     Select::make('item_id')
                         ->relationship('item', 'name', function (Builder $query, $get) {
-                            $query->where('is_active', true);
                             $supplierId = $get('../../supplier_id');
                             if ($supplierId) {
                                 $query->whereHas('suppliers', fn($q) => $q->where('suppliers.id', $supplierId));
-                            } else {
-                                $query->whereRaw('1 = 0');
                             }
                         })
                         ->searchable()
                         ->preload()
-                        ->placeholder(fn ($get) => !$get('../../supplier_id') ? 'Pilih supplier dulu' : 'Cari barang...')
                         ->required()
                         ->live()
                         ->afterStateUpdated(function ($state, callable $get, callable $set) use ($updateTotal, $parse) {
-                            $set('buy_price', \App\Models\Item::find($state)?->harga_beli ?? 0);
-                            $set('subtotal', $parse($get('quantity') ?: 0) * $parse($get('buy_price') ?: 0));
+                            if (!$state) {
+                                $set('buy_price', 0);
+                                $set('subtotal', 0);
+                                $updateTotal($get, $set);
+                                return;
+                            }
+
+                            $item = \App\Models\Item::find($state);
+                            if (!$item) return;
+
+                            // Use supplier-specific price from pivot if available, otherwise item's harga_beli
+                            $buyPrice = $item->harga_beli;
+                            $supplierId = $get('../../supplier_id');
+                            if ($supplierId) {
+                                $supplier = $item->suppliers()->where('suppliers.id', $supplierId)->first();
+                                if ($supplier && $supplier->pivot->default_buy_price > 0) {
+                                    $buyPrice = $supplier->pivot->default_buy_price;
+                                }
+                            }
+
+                            // Store in variable — $get('buy_price') won't reflect $set() in same callback
+                            $set('buy_price', $buyPrice);
+                            $qty = $parse($get('quantity') ?: 0);
+                            $set('subtotal', $qty * $parse($buyPrice));
                             $updateTotal($get, $set);
                         }),
 
@@ -116,11 +134,7 @@ class InboundForm
                         ->mask(RawJs::make('$money($input)'))
                         ->stripCharacters(',')
                         ->required()
-                        ->live(onBlur: true)
-                        ->afterStateUpdated(function ($state, callable $get, callable $set) use ($updateTotal, $parse) {
-                            $set('subtotal', $parse($state) * $parse($get('quantity') ?: 0));
-                            $updateTotal($get, $set);
-                        }),
+                        ->readOnly(),
 
                     TextInput::make('subtotal')
                         ->numeric()
