@@ -33,6 +33,10 @@ class ItemForm
             TextInput::make('name')
                 ->required()
                 ->autofocus(),
+            Select::make('brand_id')
+                ->relationship('brand', 'name')
+                ->preload()
+                ->searchable(),
             Select::make('suppliers')
                 ->label('Supplier')
                 ->multiple()

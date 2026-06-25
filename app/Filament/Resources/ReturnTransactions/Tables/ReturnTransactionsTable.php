@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ReturnTransactions\Tables;
 
 use App\Filament\Resources\ReturnTransactions\Schemas\ReturnTransactionViewForm;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -27,8 +28,14 @@ class ReturnTransactionsTable
                     ->label('Tanggal')
                     ->date('d F Y')
                     ->sortable(),
+                TextColumn::make('type')
+                    ->label('Tipe')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => $state === 'supplier' ? 'Ke Supplier' : 'Dari Customer')
+                    ->color(fn ($state) => $state === 'supplier' ? 'warning' : 'info'),
                 TextColumn::make('supplier.name')
-                    ->label('Supplier')
+                    ->label('Supplier / Customer')
+                    ->getStateUsing(fn ($record) => $record->type === 'supplier' ? ($record->supplier?->name ?? '-') : ($record->customer_name ?? '-'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('reason')
@@ -100,11 +107,12 @@ class ReturnTransactionsTable
                     ->action(function ($record) {
                         $record->update(['status' => 'ditolak']);
                     }),
-                EditAction::make(),
+                EditAction::make()
+                    ->visible(fn ($record) => $record->status === 'pending'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    \Filament\Actions\BulkAction::make('bulk_approve')
+                    BulkAction::make('bulk_approve')
                         ->label('Approve Selected')
                         ->color('success')
                         ->icon('heroicon-o-check-circle')
@@ -115,7 +123,7 @@ class ReturnTransactionsTable
                             $records->each(fn ($record) => $record->update(['status' => 'approved']));
                         })
                         ->deselectRecordsAfterCompletion(),
-                    \Filament\Actions\BulkAction::make('bulk_reject')
+                    BulkAction::make('bulk_reject')
                         ->label('Reject Selected')
                         ->color('danger')
                         ->icon('heroicon-o-x-circle')

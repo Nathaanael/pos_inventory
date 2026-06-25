@@ -1,1 +1,43 @@
-<?php namespace App\Models; use Illuminate\Database\Eloquent\Model; class StockOpname extends Model { protected $guarded = []; public function createdBy() { return $this->belongsTo(User::class, 'created_by'); } public function approvedBy() { return $this->belongsTo(User::class, 'approved_by'); } public function items() { return $this->hasMany(StockOpnameItem::class); } }
+<?php
+
+namespace App\Models;
+
+use App\Enums\TransactionStatus;
+use App\Traits\HasSequentialCode;
+use Illuminate\Database\Eloquent\Model;
+
+class StockOpname extends Model
+{
+    use HasSequentialCode;
+
+    protected $guarded = [];
+
+    protected $casts = [
+        'date' => 'date',
+        'status' => TransactionStatus::class,
+    ];
+
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            if (empty($model->transaction_code)) {
+                $model->transaction_code = self::generateTransactionCode('SO');
+            }
+        });
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function items()
+    {
+        return $this->hasMany(StockOpnameItem::class);
+    }
+}

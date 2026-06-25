@@ -42,11 +42,31 @@ class ReturnTransactionForm
                 ->displayFormat('d F Y')
                 ->required(),
 
+            Select::make('type')
+                ->label('Tipe Retur')
+                ->options([
+                    'supplier' => 'Retur ke Supplier',
+                    'customer' => 'Retur dari Customer',
+                ])
+                ->default('supplier')
+                ->required()
+                ->live(),
+
             Select::make('supplier_id')
                 ->label('Supplier')
                 ->relationship('supplier', 'name')
                 ->live()
-                ->required(),
+                ->required(fn (\Filament\Forms\Get $get) => $get('type') === 'supplier')
+                ->visible(fn (\Filament\Forms\Get $get) => $get('type') === 'supplier'),
+
+            TextInput::make('customer_name')
+                ->label('Nama Customer')
+                ->required(fn (\Filament\Forms\Get $get) => $get('type') === 'customer')
+                ->visible(fn (\Filament\Forms\Get $get) => $get('type') === 'customer'),
+
+            TextInput::make('reference_code')
+                ->label('No. Referensi (Asal)')
+                ->maxLength(30),
 
             Select::make('status')
                 ->label('Status')
@@ -95,8 +115,7 @@ class ReturnTransactionForm
                         })
                         ->searchable()
                         ->preload()
-                        ->disabled(fn ($get) => !$get('../../supplier_id'))
-                        ->placeholder(fn ($get) => $get('../../supplier_id') ? 'Cari barang...' : 'Pilih supplier dulu')
+                        ->placeholder(fn ($get) => $get('../../type') === 'supplier' && !$get('../../supplier_id') ? 'Pilih supplier dulu' : 'Cari barang...')
                         ->live()
                         ->afterStateUpdated(function ($state, $set, $get) use ($updateTotal, $parse) {
                             if ($state) {

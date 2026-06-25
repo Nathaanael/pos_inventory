@@ -13,7 +13,18 @@ class EditSupplier extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            DeleteAction::make()
+                ->before(function ($record, DeleteAction $action) {
+                    if ($record->inbounds()->exists()) {
+                        \Filament\Notifications\Notification::make()
+                            ->danger()
+                            ->title('Gagal menghapus')
+                            ->body('Supplier ini sedang digunakan dalam transaksi Inbound.')
+                            ->send();
+                        
+                        $action->cancel();
+                    }
+                }),
         ];
     }
 }

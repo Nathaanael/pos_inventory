@@ -30,6 +30,10 @@ class ItemsTable
                     ->searchable(),
                 TextColumn::make('name')
                     ->searchable(),
+                TextColumn::make('brand.name')
+                    ->label('Merk')
+                    ->badge()
+                    ->searchable(),
                 TextColumn::make('suppliers.name')
                     ->label('Supplier')
                     ->badge()
@@ -81,6 +85,11 @@ class ItemsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                \Filament\Tables\Filters\SelectFilter::make('brand_id')
+                    ->relationship('brand', 'name')
+                    ->label('Merk')
+                    ->searchable()
+                    ->preload(),
                 TernaryFilter::make('is_active')
                     ->label('Status Aktif')
                     ->trueLabel('Aktif')

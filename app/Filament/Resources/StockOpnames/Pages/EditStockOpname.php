@@ -5,6 +5,7 @@ namespace App\Filament\Resources\StockOpnames\Pages;
 use App\Filament\Resources\StockOpnames\StockOpnameResource;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 
 class EditStockOpname extends EditRecord
 {
@@ -20,7 +21,7 @@ class EditStockOpname extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            // \Filament\Actions\DeleteAction::make(),
+            // DeleteAction::make(),
         ];
     }
 

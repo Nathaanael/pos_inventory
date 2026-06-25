@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Outbounds\Tables;
 
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -51,7 +52,46 @@ class OutboundsTable
                 //
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->visible(fn ($record) => $record->status->value === 'pending'),
+                Action::make('void')
+                    ->label('Void')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->form([
+                        \Filament\Forms\Components\Textarea::make('void_reason')->required()->label('Alasan Void')
+                    ])
+                    ->action(function ($record, array $data) {
+                        \Illuminate\Support\Facades\DB::transaction(function () use ($record, $data) {
+                            $record->update([
+                                'status' => \App\Enums\TransactionStatus::VOIDED,
+                                'voided_at' => now(),
+                                'voided_by' => auth()->id(),
+                                'void_reason' => $data['void_reason'],
+                            ]);
+                            foreach ($record->items as $itemModel) {
+                                $item = \App\Models\Item::lockForUpdate()->find($itemModel->item_id);
+                                $stockBefore = $item->current_stock;
+                                $item->current_stock += $itemModel->quantity;
+                                $item->save();
+                                \App\Models\StockMovement::create([
+                                    'item_id' => $item->id,
+                                    'type' => \App\Enums\MovementType::VOID->value,
+                                    'reference_id' => $record->id,
+                                    'reference_type' => 'outbounds',
+                                    'quantity' => $itemModel->quantity,
+                                    'stock_before' => $stockBefore,
+                                    'stock_after' => $item->current_stock,
+                                    'price' => $itemModel->sell_price,
+                                    'notes' => 'Void Outbound: ' . $data['void_reason'],
+                                    'created_by' => auth()->id() ?? 1
+                                ]);
+                            }
+                        });
+                        \Filament\Notifications\Notification::make()->title('Transaksi Berhasil di-Void')->success()->send();
+                    })
+                    ->visible(fn ($record) => in_array($record->status->value, ['selesai', 'diterima']) && !$record->voided_at),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

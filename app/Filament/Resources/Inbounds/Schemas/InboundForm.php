@@ -46,12 +46,21 @@ class InboundForm
                 ->live()
                 ->required(),
 
+            TextInput::make('supplier_invoice_no')
+                ->label('No. Invoice Supplier')
+                ->maxLength(50),
+
+            TextInput::make('delivery_note_no')
+                ->label('No. Surat Jalan')
+                ->maxLength(50),
+
             Select::make('status')
                 ->options([
                     'pending' => 'Pending',
                     'diterima' => 'Diterima',
                 ])
                 ->default('diterima')
+                ->disabled(fn (string $operation) => $operation === 'edit')
                 ->required(),
 
             Hidden::make('total_amount')
