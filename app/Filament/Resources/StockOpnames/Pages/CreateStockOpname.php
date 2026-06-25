@@ -10,7 +10,7 @@ class CreateStockOpname extends CreateRecord
 {
     protected static string $resource = StockOpnameResource::class;
 
-    public string $submitMode = 'approved';
+    public string $submitMode = 'selesai';
 
     protected function getFormActions(): array
     {

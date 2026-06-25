@@ -39,25 +39,17 @@ class SalesAndProfitChart extends ChartWidget
             default => Carbon::now()->subDays(29)->startOfDay(),
         };
         
-        $salesData = Outbound::select(
-            DB::raw('DATE(created_at) as date'),
-            DB::raw('SUM(total_amount) as total')
-        )
-        ->where('type', 'penjualan')
+        $salesData = Outbound::selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
         ->where('status', 'selesai')
         ->where('created_at', '>=', $startDate)
         ->groupByRaw('DATE(created_at)')
         ->pluck('total', 'date');
 
-        $profitData = OutboundItem::select(
-            DB::raw('DATE(outbounds.created_at) as date'),
-            DB::raw('SUM(outbound_items.profit) as total')
-        )
-        ->join('outbounds', 'outbound_items.outbound_id', '=', 'outbounds.id')
-        ->where('outbounds.type', 'penjualan')
+        $profitData = OutboundItem::join('outbounds', 'outbound_items.outbound_id', '=', 'outbounds.id')
         ->where('outbounds.status', 'selesai')
         ->where('outbounds.created_at', '>=', $startDate)
         ->groupByRaw('DATE(outbounds.created_at)')
+        ->selectRaw('DATE(outbounds.created_at) as date, SUM(outbound_items.profit) as total')
         ->pluck('total', 'date');
 
         $labels = [];

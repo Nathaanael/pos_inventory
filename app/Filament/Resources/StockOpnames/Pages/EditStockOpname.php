@@ -11,7 +11,7 @@ class EditStockOpname extends EditRecord
 {
     protected static string $resource = StockOpnameResource::class;
 
-    public string $submitMode = 'approved';
+    public string $submitMode = 'selesai';
 
     public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
     {

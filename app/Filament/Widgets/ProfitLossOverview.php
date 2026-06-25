@@ -31,16 +31,17 @@ class ProfitLossOverview extends Widget
             default => Carbon::now()->subDays(29)->startOfDay(),
         };
 
+        $endDate = Carbon::now()->endOfDay();
+
         // Revenue
-        $revenue = Outbound::where('type', 'penjualan')
-            ->where('status', 'selesai')
-            ->where('created_at', '>=', $startDate)
+        $revenue = Outbound::where('status', 'selesai')
+            ->whereDate('created_at', '>=', $startDate)
+            ->whereDate('created_at', '<=', $endDate)
             ->sum('total_amount');
 
         // COGS (Total Modal Barang Terjual)
         $cogs = OutboundItem::whereHas('outbound', function($q) use ($startDate) {
-            $q->where('type', 'penjualan')
-              ->where('status', 'selesai')
+            $q->where('status', 'selesai')
               ->where('created_at', '>=', $startDate);
         })->sum(\Illuminate\Support\Facades\DB::raw('cogs_price * quantity'));
 

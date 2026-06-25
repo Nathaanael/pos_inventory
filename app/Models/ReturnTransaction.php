@@ -25,8 +25,8 @@ class ReturnTransaction extends Model
     protected static function booted()
     {
         static::creating(function ($model) {
-            if (empty($model->transaction_code)) {
-                $model->transaction_code = self::generateTransactionCode('RET');
+            if (empty($model->return_code)) {
+                $model->return_code = self::generateTransactionCode('RET', 'return_code');
             }
         });
     }

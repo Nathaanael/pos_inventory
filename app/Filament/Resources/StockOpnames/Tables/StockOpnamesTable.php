@@ -58,13 +58,13 @@ class StockOpnamesTable
                     }),
                 TextColumn::make('status')
                     ->badge()
-                    ->formatStateUsing(fn ($state) => match ($state) {
-                        'approved' => 'Selesai',
+                    ->formatStateUsing(fn ($state) => match ($state instanceof \App\Enums\TransactionStatus ? $state->value : $state) {
+                        'selesai' => 'Selesai',
                         'draft' => 'Draft',
-                        default => $state,
+                        default => (string) ($state instanceof \App\Enums\TransactionStatus ? $state->value : $state),
                     })
-                    ->color(fn ($state) => match ($state) {
-                        'approved' => 'success',
+                    ->color(fn ($state) => match ($state instanceof \App\Enums\TransactionStatus ? $state->value : $state) {
+                        'selesai' => 'success',
                         'draft' => 'warning',
                         default => 'gray',
                     }),
@@ -88,7 +88,7 @@ class StockOpnamesTable
                     ->modalAutofocus(false),
                 EditAction::make()
                     ->label('Lanjutkan')
-                    ->hidden(fn ($record) => $record->status === 'approved'),
+                    ->hidden(fn ($record) => ($record->status instanceof \App\Enums\TransactionStatus ? $record->status->value : $record->status) === 'selesai'),
             ])
             ->toolbarActions([
                 // BulkActionGroup::make([

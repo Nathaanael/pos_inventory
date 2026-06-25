@@ -20,8 +20,8 @@ class StockOpname extends Model
     protected static function booted()
     {
         static::creating(function ($model) {
-            if (empty($model->transaction_code)) {
-                $model->transaction_code = self::generateTransactionCode('SO');
+            if (empty($model->code)) {
+                $model->code = self::generateTransactionCode('SO', 'code');
             }
         });
     }

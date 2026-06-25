@@ -30,14 +30,15 @@ class ReturnTransactionViewForm
                     \Filament\Forms\Components\Placeholder::make('status')
                         ->label('Status')
                         ->content(function ($record) {
-                            $label = match ($record->status) {
-                                'approved' => 'Disetujui',
+                            $statusVal = $record->status instanceof \App\Enums\TransactionStatus ? $record->status->value : $record->status;
+                            $label = match ($statusVal) {
+                                'selesai' => 'Disetujui',
                                 'pending' => 'Pending',
                                 'ditolak' => 'Ditolak',
-                                default => $record->status,
+                                default => ucfirst((string) $statusVal),
                             };
-                            $color = match ($record->status) {
-                                'approved' => 'background-color: #10b981; color: white;',
+                            $color = match ($statusVal) {
+                                'selesai' => 'background-color: #10b981; color: white;',
                                 'pending' => 'background-color: #f59e0b; color: white;',
                                 'ditolak' => 'background-color: #ef4444; color: white;',
                                 default => 'background-color: #6b7280; color: white;',

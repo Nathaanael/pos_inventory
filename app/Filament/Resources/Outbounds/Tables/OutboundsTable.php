@@ -22,8 +22,6 @@ class OutboundsTable
                 TextColumn::make('date')
                     ->date()
                     ->sortable(),
-                TextColumn::make('type')
-                    ->badge(),
                 TextColumn::make('customer_name')
                     ->searchable(),
                 TextColumn::make('destination')
@@ -144,11 +142,11 @@ class OutboundsTable
                     })
                     ->visible(fn ($record) => in_array($record->status->value, ['selesai', 'diterima']) && !$record->voided_at),
             ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ])
+            // ->toolbarActions([
+            //     BulkActionGroup::make([
+            //         DeleteBulkAction::make(),
+            //     ]),
+            // ])
             ->columnManager(false);
     }
 }

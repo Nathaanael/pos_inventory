@@ -44,17 +44,17 @@ class ReturnTransactionsTable
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'approved' => 'success',
+                    ->color(fn ($state): string => match ($state instanceof \App\Enums\TransactionStatus ? $state->value : $state) {
+                        'selesai' => 'success',
                         'pending' => 'warning',
                         'ditolak' => 'danger',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'approved' => 'Disetujui',
+                    ->formatStateUsing(fn ($state): string => match ($state instanceof \App\Enums\TransactionStatus ? $state->value : $state) {
+                        'selesai' => 'Disetujui',
                         'pending' => 'Pending',
                         'ditolak' => 'Ditolak',
-                        default => ucfirst($state),
+                        default => ucfirst((string) ($state instanceof \App\Enums\TransactionStatus ? $state->value : $state)),
                     }),
                 TextColumn::make('total_amount')
                     ->label('Total Harga Retur')
@@ -75,7 +75,7 @@ class ReturnTransactionsTable
                     ->label('Status')
                     ->options([
                         'pending' => 'Pending',
-                        'approved' => 'Disetujui',
+                        'selesai' => 'Disetujui',
                         'ditolak' => 'Ditolak',
                     ]),
             ])
@@ -92,9 +92,9 @@ class ReturnTransactionsTable
                     ->requiresConfirmation()
                     ->modalHeading('Setujui Retur')
                     ->modalDescription('Apakah Anda yakin ingin menyetujui retur ini?')
-                    ->hidden(fn ($record) => $record->status !== 'pending')
+                    ->hidden(fn ($record) => ($record->status instanceof \App\Enums\TransactionStatus ? $record->status->value : $record->status) !== 'pending')
                     ->action(function ($record) {
-                        $record->update(['status' => 'approved']);
+                        $record->update(['status' => 'selesai']);
                     }),
                 Action::make('reject')
                     ->label('Reject')
@@ -103,12 +103,12 @@ class ReturnTransactionsTable
                     ->requiresConfirmation()
                     ->modalHeading('Tolak Retur')
                     ->modalDescription('Apakah Anda yakin ingin menolak retur ini?')
-                    ->hidden(fn ($record) => $record->status !== 'pending')
+                    ->hidden(fn ($record) => ($record->status instanceof \App\Enums\TransactionStatus ? $record->status->value : $record->status) !== 'pending')
                     ->action(function ($record) {
                         $record->update(['status' => 'ditolak']);
                     }),
                 EditAction::make()
-                    ->visible(fn ($record) => $record->status === 'pending'),
+                    ->visible(fn ($record) => ($record->status instanceof \App\Enums\TransactionStatus ? $record->status->value : $record->status) === 'pending'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
@@ -120,7 +120,7 @@ class ReturnTransactionsTable
                         ->modalHeading('Setujui Retur Terpilih')
                         ->modalDescription('Apakah Anda yakin ingin menyetujui semua retur yang dipilih?')
                         ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
-                            $records->each(fn ($record) => $record->update(['status' => 'approved']));
+                            $records->each(fn ($record) => $record->update(['status' => 'selesai']));
                         })
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('bulk_reject')

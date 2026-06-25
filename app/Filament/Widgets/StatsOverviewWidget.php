@@ -28,12 +28,10 @@ class StatsOverviewWidget extends BaseWidget
 
         // Penjualan Hari Ini
         $salesToday = Outbound::whereDate('created_at', $today)
-            ->where('type', 'penjualan')
             ->where('status', 'selesai')
             ->sum('total_amount');
             
         $salesYesterday = Outbound::whereDate('created_at', $yesterday)
-            ->where('type', 'penjualan')
             ->where('status', 'selesai')
             ->sum('total_amount');
             
@@ -44,13 +42,11 @@ class StatsOverviewWidget extends BaseWidget
         // Laba Kotor Hari Ini
         $profitToday = OutboundItem::whereHas('outbound', function($q) use ($today) {
             $q->whereDate('created_at', $today)
-              ->where('type', 'penjualan')
               ->where('status', 'selesai');
         })->sum('profit');
         
         $profitYesterday = OutboundItem::whereHas('outbound', function($q) use ($yesterday) {
             $q->whereDate('created_at', $yesterday)
-              ->where('type', 'penjualan')
               ->where('status', 'selesai');
         })->sum('profit');
 

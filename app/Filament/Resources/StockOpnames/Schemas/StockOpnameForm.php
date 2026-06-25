@@ -33,7 +33,7 @@ class StockOpnameForm
                 ->columnSpanFull(), 
                 
             Hidden::make('status')
-                ->default('approved'), 
+                ->default('selesai'), 
                 
             Textarea::make('notes')
                 ->columnSpanFull(), 

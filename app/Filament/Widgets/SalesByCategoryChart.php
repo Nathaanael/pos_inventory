@@ -37,7 +37,6 @@ class SalesByCategoryChart extends ChartWidget
         ->join('outbounds', 'outbound_items.outbound_id', '=', 'outbounds.id')
         ->join('items', 'outbound_items.item_id', '=', 'items.id')
         ->join('categories', 'items.category_id', '=', 'categories.id')
-        ->where('outbounds.type', 'penjualan')
         ->where('outbounds.status', 'selesai')
         ->where('outbounds.created_at', '>=', $startDate)
         ->groupBy('categories.id', 'categories.name')

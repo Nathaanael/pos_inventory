@@ -24,14 +24,7 @@ class OutboundViewForm
                         ->label('Tanggal')
                         ->native(false)
                         ->displayFormat('d F Y'),
-                    Select::make('type')
-                        ->label('Tipe')
-                        ->options([
-                            'penjualan' => 'Penjualan',
-                            'penggunaan' => 'Penggunaan',
-                            'retur' => 'Retur',
-                            'lainnya' => 'Lainnya'
-                        ]),
+
                     TextInput::make('customer_name')
                         ->label('Nama Klien / Customer'),
                     TextInput::make('destination')

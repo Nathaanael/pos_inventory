@@ -41,16 +41,6 @@ class OutboundForm
                 ->default(now())
                 ->required(),
 
-            Select::make('type')
-                ->options([
-                    'penjualan' => 'Penjualan',
-                    'penggunaan' => 'Penggunaan',
-                    'retur' => 'Retur',
-                    'lainnya' => 'Lainnya'
-                ])
-                ->default('penjualan')
-                ->required(),
-
             TextInput::make('customer_name'),
             TextInput::make('destination'),
 

@@ -91,7 +91,7 @@ class ReturnTransactionForm
                 ->label('Status')
                 ->options([
                     'pending' => 'Pending',
-                    'approved' => 'Disetujui',
+                    'selesai' => 'Disetujui',
                     'ditolak' => 'Ditolak'
                 ])
                 ->default('pending')
@@ -125,16 +125,22 @@ class ReturnTransactionForm
                     Select::make('item_id')
                         ->label('Barang')
                         ->relationship('item', 'name', function ($query, $get) {
+                            $type = $get('../../type');
                             $supplierId = $get('../../supplier_id');
-                            if ($supplierId) {
-                                $query->whereHas('suppliers', function ($q) use ($supplierId) {
-                                    $q->where('suppliers.id', $supplierId);
-                                });
+                            
+                            if ($type === 'supplier') {
+                                if ($supplierId) {
+                                    $query->whereHas('suppliers', function ($q) use ($supplierId) {
+                                        $q->where('suppliers.id', $supplierId);
+                                    });
+                                } else {
+                                    $query->whereRaw('1 = 0');
+                                }
                             }
                         })
                         ->searchable()
                         ->preload()
-                        ->placeholder(fn ($get) => $get('../../type') === 'supplier' && !$get('../../supplier_id') ? 'Pilih Barang' : 'Cari barang...')
+                        ->placeholder(fn ($get) => $get('../../type') === 'supplier' && !$get('../../supplier_id') ? 'Pilih supplier dulu' : 'Cari barang...')
                         ->live()
                         ->afterStateUpdated(function ($state, $set, $get) use ($updateTotal, $parse) {
                             if ($state) {

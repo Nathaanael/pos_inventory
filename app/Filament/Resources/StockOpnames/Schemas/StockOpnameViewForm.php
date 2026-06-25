@@ -28,13 +28,14 @@ class StockOpnameViewForm
                     \Filament\Forms\Components\Placeholder::make('status')
                         ->label('Status')
                         ->content(function ($record) {
-                            $label = match ($record->status) {
-                                'approved' => 'Selesai',
+                            $statusVal = $record->status instanceof \App\Enums\TransactionStatus ? $record->status->value : $record->status;
+                            $label = match ($statusVal) {
+                                'selesai' => 'Selesai',
                                 'draft' => 'Draft',
-                                default => $record->status,
+                                default => (string) $statusVal,
                             };
-                            $color = match ($record->status) {
-                                'approved' => 'background-color: #10b981; color: white;',
+                            $color = match ($statusVal) {
+                                'selesai' => 'background-color: #10b981; color: white;',
                                 'draft' => 'background-color: #f59e0b; color: white;',
                                 default => 'background-color: #6b7280; color: white;',
                             };

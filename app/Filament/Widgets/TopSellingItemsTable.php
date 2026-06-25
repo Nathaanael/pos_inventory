@@ -43,7 +43,6 @@ class TopSellingItemsTable extends BaseWidget
                     )
                     ->join('outbound_items', 'items.id', '=', 'outbound_items.item_id')
                     ->join('outbounds', 'outbound_items.outbound_id', '=', 'outbounds.id')
-                    ->where('outbounds.type', 'penjualan')
                     ->where('outbounds.status', 'selesai')
                     ->where('outbounds.created_at', '>=', $startDate)
                     ->groupBy('items.id', 'items.name')
