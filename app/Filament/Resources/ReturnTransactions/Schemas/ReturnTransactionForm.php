@@ -50,19 +50,38 @@ class ReturnTransactionForm
                 ])
                 ->default('supplier')
                 ->required()
-                ->live(),
+                ->live()
+                ->afterStateUpdated(function ($state, $get, $set, $livewire) {
+                    $items = $get('items');
+                    if (is_array($items)) {
+                        $parse = fn($value) => (float) str_replace(',', '', (string) $value);
+                        $isSupplier = $state === 'supplier';
+                        
+                        foreach ($items as $key => $itemData) {
+                            $current = $itemData['current_stock'] ?? 0;
+                            $qty = $parse($itemData['quantity'] ?? 0);
+                            $items[$key]['stock_after'] = $current + ($isSupplier ? -$qty : $qty);
+                        }
+                        $set('items', $items);
+                        
+                        // We also need to re-trigger validation if switching to supplier to ensure stock is sufficient
+                        if ($isSupplier) {
+                            $livewire->validateOnly('data.items.*.quantity');
+                        }
+                    }
+                }),
 
             Select::make('supplier_id')
                 ->label('Supplier')
                 ->relationship('supplier', 'name')
                 ->live()
-                ->required(fn (\Filament\Forms\Get $get) => $get('type') === 'supplier')
-                ->visible(fn (\Filament\Forms\Get $get) => $get('type') === 'supplier'),
+                ->required(fn ($get) => $get('type') === 'supplier')
+                ->visible(fn ($get) => $get('type') === 'supplier'),
 
             TextInput::make('customer_name')
                 ->label('Nama Customer')
-                ->required(fn (\Filament\Forms\Get $get) => $get('type') === 'customer')
-                ->visible(fn (\Filament\Forms\Get $get) => $get('type') === 'customer'),
+                ->required(fn ($get) => $get('type') === 'customer')
+                ->visible(fn ($get) => $get('type') === 'customer'),
 
             TextInput::make('reference_code')
                 ->label('No. Referensi (Asal)')
@@ -115,7 +134,7 @@ class ReturnTransactionForm
                         })
                         ->searchable()
                         ->preload()
-                        ->placeholder(fn ($get) => $get('../../type') === 'supplier' && !$get('../../supplier_id') ? 'Pilih supplier dulu' : 'Cari barang...')
+                        ->placeholder(fn ($get) => $get('../../type') === 'supplier' && !$get('../../supplier_id') ? 'Pilih Barang' : 'Cari barang...')
                         ->live()
                         ->afterStateUpdated(function ($state, $set, $get) use ($updateTotal, $parse) {
                             if ($state) {
@@ -123,7 +142,8 @@ class ReturnTransactionForm
                                 $set('current_stock', $item?->current_stock ?? 0);
                                 $set('price', $item?->harga_beli ?? 0);
                                 $qty = $parse($get('quantity') ?: 0);
-                                $set('stock_after', ($item?->current_stock ?? 0) - $qty);
+                                $isSupplier = $get('../../type') === 'supplier';
+                                $set('stock_after', ($item?->current_stock ?? 0) + ($isSupplier ? -$qty : $qty));
                                 $set('subtotal', $qty * $parse($get('price') ?: 0));
                                 $updateTotal($get, $set);
                             } else {
@@ -147,13 +167,31 @@ class ReturnTransactionForm
                         ->label('Qty Retur')
                         ->numeric()
                         ->live(onBlur: true)
-                        ->afterStateUpdated(function ($state, $get, $set) use ($updateTotal, $parse) {
+                        ->afterStateUpdated(function ($state, $get, $set, \Filament\Forms\Components\TextInput $component, $livewire) use ($updateTotal, $parse) {
+                            $livewire->resetValidation($component->getStatePath());
                             $current = $get('current_stock') ?? 0;
                             $qty = $parse($state);
-                            $set('stock_after', $current - $qty);
+                            $isSupplier = $get('../../type') === 'supplier';
+                            $set('stock_after', $current + ($isSupplier ? -$qty : $qty));
                             $set('subtotal', $qty * $parse($get('price') ?: 0));
                             $updateTotal($get, $set);
+                            
+                            if ($isSupplier && $qty > $current) {
+                                throw \Illuminate\Validation\ValidationException::withMessages([
+                                    $component->getStatePath() => "Stok tidak cukup. Tersedia: {$current}",
+                                ]);
+                            }
                         })
+                        ->rules([
+                            fn ($get) => function (string $attribute, $value, \Closure $fail) use ($get) {
+                                if ($get('../../type') === 'supplier') {
+                                    $current = $get('current_stock') ?? 0;
+                                    if ($value > $current) {
+                                        $fail("Stok tidak cukup. Tersedia: {$current}");
+                                    }
+                                }
+                            }
+                        ])
                         ->required(),
 
                     TextInput::make('price')
