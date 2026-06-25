@@ -29,7 +29,11 @@ class ItemForm
                 ->maxLength(20),
             BarcodeInput::make('barcode')
                 ->label('Barcode')
-                ->placeholder('Scan atau ketik barcode...'),
+                ->placeholder('Scan atau ketik barcode...')
+                ->unique(ignoreRecord: true)
+                ->validationMessages([
+                    'unique' => 'barcode ini sudah ada',
+                ]),
             TextInput::make('name')
                 ->required()
                 ->autofocus(),

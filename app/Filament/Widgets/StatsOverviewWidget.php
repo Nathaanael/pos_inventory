@@ -16,6 +16,11 @@ class StatsOverviewWidget extends BaseWidget
     protected int | string | array $columnSpan = 'full';
     protected ?string $pollingInterval = '30s';
 
+    protected function getColumns(): int
+    {
+        return 2;
+    }
+
     protected function getStats(): array
     {
         $today = Carbon::today();

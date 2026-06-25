@@ -86,10 +86,13 @@ class InboundForm
                             $supplierId = $get('../../supplier_id');
                             if ($supplierId) {
                                 $query->whereHas('suppliers', fn($q) => $q->where('suppliers.id', $supplierId));
+                            } else {
+                                $query->whereRaw('1 = 0');
                             }
                         })
                         ->searchable()
                         ->preload()
+                        ->placeholder(fn ($get) => !$get('../../supplier_id') ? 'Pilih supplier dulu' : 'Cari barang...')
                         ->required()
                         ->live()
                         ->afterStateUpdated(function ($state, callable $get, callable $set) use ($updateTotal, $parse) {
