@@ -55,13 +55,15 @@ class ItemsTable
                         if ($hoursDiff > 24) return null;
                         return match ($movement->type) {
                             'inbound' => 'Inbound (' . $movement->quantity . ')',
-                            'return_out' => 'Retur (-' . abs($movement->quantity) . ')',
+                            'outbound' => 'Outbound (' . $movement->quantity . ')',
+                            'return_out' => 'Retur (' . $movement->quantity . ')',
                             'adjustment' => 'Adjustment (' . $movement->quantity . ')',
                             default => ucfirst($movement->type),
                         };
                     })
                     ->color(fn ($state) => match (true) {
                         str_contains($state ?? '', 'Inbound') => 'success',
+                        str_contains($state ?? '', 'Outbound') => 'warning',
                         str_contains($state ?? '', 'Retur') => 'danger',
                         str_contains($state ?? '', 'Adjustment') => 'info',
                         default => 'gray',
@@ -97,6 +99,15 @@ class ItemsTable
                     ->placeholder('Semua'),
             ])
             ->recordActions([
+                \Filament\Actions\Action::make('history')
+                    ->label('Histori')
+                    ->icon('heroicon-o-clock')
+                    ->modalHeading(fn ($record) => 'Histori Aktivitas: ' . $record->name)
+                    ->modalContent(fn ($record) => view('filament.resources.items.history', [
+                        'movements' => $record->stockMovements()->latest()->take(10)->get()
+                    ]))
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Tutup'),
                 ViewAction::make()
                     ->slideOver()
                     ->modalWidth('6xl')

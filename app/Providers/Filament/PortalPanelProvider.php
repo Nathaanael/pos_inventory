@@ -22,9 +22,9 @@ class PortalPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->default()
+            // ->default()
             ->id('portal')
-            ->path('')
+            ->path('portal')
             ->login()
             ->colors([
                 'primary' => Color::Amber,

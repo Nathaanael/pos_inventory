@@ -6,6 +6,8 @@ use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use App\Filament\Resources\Outbounds\Schemas\OutboundViewForm;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -36,9 +38,6 @@ class OutboundsTable
                 TextColumn::make('total_cogs')
                     ->numeric()
                     ->sortable(),
-                TextColumn::make('created_by')
-                    ->numeric()
-                    ->sortable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -52,7 +51,59 @@ class OutboundsTable
                 //
             ])
             ->recordActions([
+                ViewAction::make()
+                    ->slideOver()
+                    ->modalWidth('6xl')
+                    ->form(OutboundViewForm::schema())
+                    ->modalAutofocus(false),
                 EditAction::make()
+                    ->visible(fn ($record) => $record->status->value === 'pending'),
+                Action::make('approve')
+                    ->label('Approve')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Approve Outbound')
+                    ->modalDescription('Apakah Anda yakin ingin menyetujui transaksi ini? Stok barang akan berkurang secara otomatis.')
+                    ->action(function ($record) {
+                        \Illuminate\Support\Facades\DB::transaction(function () use ($record) {
+                            $record->update([
+                                'status' => \App\Enums\TransactionStatus::COMPLETED,
+                            ]);
+
+                            foreach ($record->items as $itemModel) {
+                                $item = \App\Models\Item::lockForUpdate()->find($itemModel->item_id);
+                                $stockBefore = $item->current_stock;
+                                
+                                if ($item->current_stock < $itemModel->quantity) {
+                                    throw \Illuminate\Validation\ValidationException::withMessages([
+                                        'approve' => "Stok {$item->name} tidak cukup untuk di-approve. Tersedia: {$item->current_stock}",
+                                    ]);
+                                }
+
+                                $item->current_stock -= $itemModel->quantity;
+                                $item->save();
+
+                                \App\Models\StockMovement::create([
+                                    'item_id'        => $item->id,
+                                    'type'           => \App\Enums\MovementType::OUTBOUND->value,
+                                    'reference_id'   => $record->id,
+                                    'reference_type' => 'outbounds',
+                                    'quantity'       => -$itemModel->quantity,
+                                    'stock_before'   => $stockBefore,
+                                    'stock_after'    => $item->current_stock,
+                                    'price'          => $itemModel->sell_price,
+                                    'notes'          => 'Barang Keluar (Approved)',
+                                    'created_by'     => auth()->id() ?? 1,
+                                ]);
+                            }
+                        });
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Transaksi Berhasil di-Approve')
+                            ->success()
+                            ->send();
+                    })
                     ->visible(fn ($record) => $record->status->value === 'pending'),
                 Action::make('void')
                     ->label('Void')

@@ -82,6 +82,7 @@ class InboundForm
                 ->schema([
                     Select::make('item_id')
                         ->relationship('item', 'name', function (Builder $query, $get) {
+                            $query->where('is_active', true);
                             $supplierId = $get('../../supplier_id');
                             if ($supplierId) {
                                 $query->whereHas('suppliers', fn($q) => $q->where('suppliers.id', $supplierId));

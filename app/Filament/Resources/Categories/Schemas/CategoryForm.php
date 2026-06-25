@@ -16,7 +16,12 @@ class CategoryForm
                     ->required()
                     ->columnSpanFull(),
                 Select::make('parent_id')
-                    ->relationship('parent', 'name')
+                    ->relationship(
+                        name: 'parent', 
+                        titleAttribute: 'name',
+                        modifyQueryUsing: fn (\Illuminate\Database\Eloquent\Builder $query, ?\App\Models\Category $record) => 
+                            $record ? $query->where('id', '!=', $record->id) : $query
+                    )
                     ->label('Kategori Induk')
                     ->searchable()
                     ->preload()

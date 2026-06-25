@@ -8,4 +8,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateOutbound extends CreateRecord
 {
     protected static string $resource = OutboundResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

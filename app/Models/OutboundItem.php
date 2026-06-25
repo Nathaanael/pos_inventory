@@ -39,6 +39,11 @@ class OutboundItem extends Model
 
         static::created(function ($model) {
             DB::transaction(function () use ($model) {
+                // Jangan kurangi stok jika statusnya belum selesai
+                if ($model->outbound->status->value !== \App\Enums\TransactionStatus::COMPLETED->value) {
+                    return;
+                }
+
                 $item = Item::lockForUpdate()->find($model->item_id);
                 $stockBefore = $item->current_stock;
                 
