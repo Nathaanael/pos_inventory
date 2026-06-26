@@ -13,6 +13,12 @@ class EditReturnTransaction extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            \Filament\Actions\Action::make('pdf')
+                ->label('Cetak PDF')
+                ->icon('heroicon-o-printer')
+                ->color('gray')
+                ->url(fn ($record) => route('return-transaction.pdf', $record))
+                ->openUrlInNewTab(),
             DeleteAction::make(),
         ];
     }
