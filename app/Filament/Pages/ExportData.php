@@ -35,6 +35,10 @@ class ExportData extends Page
     public ?string $end_date = null;
     public ?string $preset_period = null;
 
+    // Pagination state
+    public int $perPage = 5;
+    public int $currentPage = 1;
+
     public function mount(): void
     {
         $this->preset_period = '30';
@@ -72,7 +76,7 @@ class ExportData extends Page
                                 '30' => '30 Hari Terakhir',
                                 'month' => 'Bulan Ini',
                                 'year' => 'Tahun Ini',
-                                'custom' => '📅 Pilih Manual...',
+                                'custom' => 'Pilih Manual...',
                             ])
                             ->default('30')
                             ->native(false)
@@ -170,9 +174,57 @@ class ExportData extends Page
     }
 
     /**
-     * Get list of existing export files for the history table.
+     * Reset pagination when per-page changes.
      */
-    public function getExportFiles(): array
+    public function updatedPerPage(): void
+    {
+        $this->currentPage = 1;
+    }
+
+    /**
+     * Go to a specific page.
+     */
+    public function goToPage(int $page): void
+    {
+        $this->currentPage = $page;
+    }
+
+    /**
+     * Delete an export file.
+     */
+    public function deleteExportFile(string $filename): void
+    {
+        $filename = basename($filename);
+        $path = "exports/{$filename}";
+
+        if (Storage::disk('local')->exists($path)) {
+            Storage::disk('local')->delete($path);
+
+            Notification::make()
+                ->title('File Dihapus')
+                ->body("File {$filename} berhasil dihapus.")
+                ->success()
+                ->send();
+        } else {
+            Notification::make()
+                ->title('File Tidak Ditemukan')
+                ->body('File yang ingin dihapus tidak ditemukan.')
+                ->warning()
+                ->send();
+        }
+
+        // Recalculate total pages and adjust current page if needed
+        $allFiles = $this->getAllExportFiles();
+        $totalPages = max(1, (int) ceil(count($allFiles) / $this->perPage));
+        if ($this->currentPage > $totalPages) {
+            $this->currentPage = $totalPages;
+        }
+    }
+
+    /**
+     * Get all export files sorted by newest first.
+     */
+    protected function getAllExportFiles(): array
     {
         $files = Storage::disk('local')->files('exports');
         $result = [];
@@ -187,14 +239,41 @@ class ExportData extends Page
                 'name' => $filename,
                 'size' => $this->formatFileSize(Storage::disk('local')->size($file)),
                 'date' => Carbon::createFromTimestamp(Storage::disk('local')->lastModified($file))->setTimezone('Asia/Jakarta')->format('d/m/Y H:i:s'),
+                'timestamp' => Storage::disk('local')->lastModified($file),
                 'url' => route('export.download', ['filename' => $filename]),
             ];
         }
 
-        // Sort by newest first
-        usort($result, fn($a, $b) => strcmp($b['date'], $a['date']));
+        // Sort by newest first (using timestamp for reliable sorting)
+        usort($result, fn($a, $b) => $b['timestamp'] - $a['timestamp']);
 
-        return array_slice($result, 0, 20); // Limit to 20 most recent
+        return $result;
+    }
+
+    /**
+     * Get paginated export files with metadata.
+     */
+    public function getExportFiles(): array
+    {
+        $allFiles = $this->getAllExportFiles();
+        $total = count($allFiles);
+        $totalPages = max(1, (int) ceil($total / $this->perPage));
+
+        // Clamp current page
+        $this->currentPage = max(1, min($this->currentPage, $totalPages));
+
+        $offset = ($this->currentPage - 1) * $this->perPage;
+        $items = array_slice($allFiles, $offset, $this->perPage);
+
+        return [
+            'items' => $items,
+            'total' => $total,
+            'totalPages' => $totalPages,
+            'currentPage' => $this->currentPage,
+            'perPage' => $this->perPage,
+            'from' => $total > 0 ? $offset + 1 : 0,
+            'to' => min($offset + $this->perPage, $total),
+        ];
     }
 
     protected function formatFileSize(int $bytes): string
