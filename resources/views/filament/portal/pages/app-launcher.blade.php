@@ -166,18 +166,6 @@
         <p class="wje-subtitle">Pilih modul aplikasi</p>
 
         <div class="wje-grid">
-            <a href="#" class="wje-card">
-            <div class="wje-card-icon red">
-                <x-heroicon-o-shopping-cart />
-            </div>
-            <p class="wje-card-label">Pencatatan Jual Beli</p>
-            <p class="wje-card-sub">Kasir & transaksi penjualan</p>
-            <div class="wje-card-arrow">
-                <span>Buka</span>
-                <x-heroicon-o-arrow-right />
-            </div>
-            </a>
-
             <a href="{{ url('/') }}" class="wje-card">
             <div class="wje-card-icon blue">
                 <x-heroicon-o-clipboard-document-check />

@@ -34,7 +34,7 @@ class ItemsTable
                     ->label('Merk')
                     ->badge()
                     ->searchable(),
-                TextColumn::make('suppliers.name')
+                TextColumn::make('supplier.name')
                     ->label('Supplier')
                     ->badge()
                     ->searchable(),

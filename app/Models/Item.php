@@ -26,11 +26,9 @@ class Item extends Model
         return $this->belongsTo(Unit::class);
     }
 
-    public function suppliers()
+    public function supplier()
     {
-        return $this->belongsToMany(Supplier::class, 'item_supplier')
-            ->withPivot('supplier_sku', 'default_buy_price', 'is_primary')
-            ->withTimestamps();
+        return $this->belongsTo(Supplier::class);
     }
 
     public function prices()

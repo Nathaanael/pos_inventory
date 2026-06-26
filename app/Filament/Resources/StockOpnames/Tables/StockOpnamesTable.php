@@ -81,6 +81,12 @@ class StockOpnamesTable
                 //
             ])
             ->recordActions([
+                \Filament\Actions\Action::make('pdf')
+                    ->label('Cetak PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('success')
+                    ->url(fn ($record) => route('stock-opname.pdf', $record))
+                    ->openUrlInNewTab(),
                 ViewAction::make()
                     ->slideOver()
                     ->modalWidth('6xl')

@@ -78,13 +78,13 @@ class OutboundsTable
                         }
                     })
                     ->visible(fn ($record) => $record->status->value === 'selesai'),
-                Action::make('preview_nota')
-                    ->label('Preview')
-                    ->icon('heroicon-o-eye')
-                    ->color('gray')
-                    ->url(fn ($record) => route('outbound.print', $record))
-                    ->openUrlInNewTab()
-                    ->visible(fn ($record) => $record->status->value === 'selesai'),
+                // Action::make('preview_nota')
+                //     ->label('Preview')
+                //     ->icon('heroicon-o-eye')
+                //     ->color('gray')
+                //     ->url(fn ($record) => route('outbound.print', $record))
+                //     ->openUrlInNewTab()
+                //     ->visible(fn ($record) => $record->status->value === 'selesai'),
                 EditAction::make()
                     ->visible(fn ($record) => $record->status->value === 'pending'),
                 Action::make('approve')

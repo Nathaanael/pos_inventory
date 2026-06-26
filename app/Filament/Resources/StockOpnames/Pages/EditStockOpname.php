@@ -21,6 +21,12 @@ class EditStockOpname extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('pdf')
+                ->label('Cetak PDF')
+                ->icon('heroicon-o-document-arrow-down')
+                ->color('success')
+                ->url(fn ($record) => route('stock-opname.pdf', $record))
+                ->openUrlInNewTab(),
             // DeleteAction::make(),
         ];
     }

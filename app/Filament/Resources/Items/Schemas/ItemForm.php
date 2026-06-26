@@ -41,10 +41,9 @@ class ItemForm
                 ->relationship('brand', 'name')
                 ->preload()
                 ->searchable(),
-            Select::make('suppliers')
+            Select::make('supplier_id')
                 ->label('Supplier')
-                ->multiple()
-                ->relationship('suppliers', 'name')
+                ->relationship('supplier', 'name')
                 ->preload()
                 ->required(),
             Textarea::make('description')

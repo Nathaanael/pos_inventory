@@ -37,13 +37,13 @@ class ItemViewForm
                         ->schema([
                             TextInput::make('harga_beli')
                                 ->prefix('Rp')
-                                ->numeric(),
+                                ->formatStateUsing(fn ($state) => number_format((float) ($state ?? 0))),
                             TextInput::make('harga_jual_retail')
                                 ->prefix('Rp')
-                                ->numeric(),
+                                ->formatStateUsing(fn ($state) => number_format((float) ($state ?? 0))),
                             TextInput::make('harga_jual_grosir')
                                 ->prefix('Rp')
-                                ->numeric(),
+                                ->formatStateUsing(fn ($state) => number_format((float) ($state ?? 0))),
                             TextInput::make('min_grosir_qty')
                                 ->numeric(),
                             TextInput::make('current_stock')
@@ -59,10 +59,9 @@ class ItemViewForm
                             Textarea::make('description'),
                             FileUpload::make('image')
                                 ->image(),
-                            Select::make('suppliers')
+                            Select::make('supplier_id')
                                 ->label('Supplier')
-                                ->multiple()
-                                ->relationship('suppliers', 'name')
+                                ->relationship('supplier', 'name')
                                 ->preload(),
                         ]),
                 ]),
