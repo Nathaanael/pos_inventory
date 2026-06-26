@@ -24,8 +24,6 @@ class OutboundsTable
                     ->sortable(),
                 TextColumn::make('customer_name')
                     ->searchable(),
-                TextColumn::make('destination')
-                    ->searchable(),
                 TextColumn::make('price_type_applied')
                     ->badge(),
                 TextColumn::make('status')

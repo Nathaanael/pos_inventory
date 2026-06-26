@@ -30,10 +30,10 @@ class ItemsTable
                     ->searchable(),
                 TextColumn::make('name')
                     ->searchable(),
-                TextColumn::make('brand.name')
-                    ->label('Merk')
-                    ->badge()
-                    ->searchable(),
+                // TextColumn::make('brand.name')
+                //     ->label('Merk')
+                //     ->badge()
+                //     ->searchable(),
                 TextColumn::make('supplier.name')
                     ->label('Supplier')
                     ->badge()
@@ -70,8 +70,8 @@ class ItemsTable
                         default => 'gray',
                     })
                     ->placeholder('-'),
-                TextColumn::make('rack_location')
-                    ->searchable(),
+                // TextColumn::make('rack_location')
+                //     ->searchable(),
                 IconColumn::make('is_active')
                     ->boolean(),
                 TextColumn::make('created_at')
