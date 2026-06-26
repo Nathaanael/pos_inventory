@@ -29,7 +29,19 @@ class OutboundsTable
                 TextColumn::make('price_type_applied')
                     ->badge(),
                 TextColumn::make('status')
-                    ->badge(),
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => match ($state instanceof \App\Enums\TransactionStatus ? $state->value : $state) {
+                        'selesai' => 'Selesai',
+                        'pending' => 'Pending',
+                        'voided' => 'Void',
+                        default => ucfirst((string) ($state instanceof \App\Enums\TransactionStatus ? $state->value : $state)),
+                    })
+                    ->color(fn ($state) => match ($state instanceof \App\Enums\TransactionStatus ? $state->value : $state) {
+                        'selesai' => 'success',
+                        'pending' => 'warning',
+                        'voided' => 'danger',
+                        default => 'gray',
+                    }),
                 TextColumn::make('total_amount')
                     ->numeric()
                     ->sortable(),
@@ -78,13 +90,6 @@ class OutboundsTable
                         }
                     })
                     ->visible(fn ($record) => $record->status->value === 'selesai'),
-                // Action::make('preview_nota')
-                //     ->label('Preview')
-                //     ->icon('heroicon-o-eye')
-                //     ->color('gray')
-                //     ->url(fn ($record) => route('outbound.print', $record))
-                //     ->openUrlInNewTab()
-                //     ->visible(fn ($record) => $record->status->value === 'selesai'),
                 EditAction::make()
                     ->visible(fn ($record) => $record->status->value === 'pending'),
                 Action::make('approve')
@@ -173,11 +178,72 @@ class OutboundsTable
                     })
                     ->visible(fn ($record) => in_array($record->status->value, ['selesai', 'diterima']) && !$record->voided_at),
             ])
-            // ->toolbarActions([
-            //     BulkActionGroup::make([
-            //         DeleteBulkAction::make(),
-            //     ]),
-            // ])
+            ->bulkActions([
+                \Filament\Actions\BulkActionGroup::make([
+                    \Filament\Actions\DeleteBulkAction::make(),
+                    \Filament\Actions\BulkAction::make('approve')
+                        ->label('Approve Terpilih')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                            $count = 0;
+                            foreach ($records as $record) {
+                                if ($record->status->value !== 'pending') continue;
+
+                                \Illuminate\Support\Facades\DB::transaction(function () use ($record) {
+                                    // Lock items first to check stock
+                                    foreach ($record->items as $itemModel) {
+                                        $item = \App\Models\Item::lockForUpdate()->find($itemModel->item_id);
+                                        if ($item->current_stock < $itemModel->quantity) {
+                                            throw \Illuminate\Validation\ValidationException::withMessages([
+                                                'approve' => "Stok {$item->name} tidak cukup untuk di-approve. Tersedia: {$item->current_stock}",
+                                            ]);
+                                        }
+                                    }
+
+                                    $record->update([
+                                        'status' => \App\Enums\TransactionStatus::COMPLETED,
+                                    ]);
+
+                                    foreach ($record->items as $itemModel) {
+                                        $item = \App\Models\Item::lockForUpdate()->find($itemModel->item_id);
+                                        $stockBefore = $item->current_stock;
+                                        $item->current_stock -= $itemModel->quantity;
+                                        $item->save();
+
+                                        \App\Models\StockMovement::create([
+                                            'item_id'        => $item->id,
+                                            'type'           => \App\Enums\MovementType::OUTBOUND->value,
+                                            'reference_id'   => $record->id,
+                                            'reference_type' => 'outbounds',
+                                            'quantity'       => -$itemModel->quantity,
+                                            'stock_before'   => $stockBefore,
+                                            'stock_after'    => $item->current_stock,
+                                            'price'          => $itemModel->sell_price,
+                                            'notes'          => 'Barang Keluar (Approved Bulk)',
+                                            'created_by'     => auth()->id() ?? 1,
+                                        ]);
+                                    }
+                                });
+                                $count++;
+                            }
+                            
+                            if ($count > 0) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title("$count Transaksi Berhasil di-Approve")
+                                    ->success()
+                                    ->send();
+                            } else {
+                                \Filament\Notifications\Notification::make()
+                                    ->title("Tidak ada transaksi pending yang dipilih")
+                                    ->warning()
+                                    ->send();
+                            }
+                        })
+                        ->deselectRecordsAfterCompletion(),
+                ]),
+            ])
             ->columnManager(false);
     }
 }

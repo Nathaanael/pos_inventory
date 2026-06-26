@@ -72,15 +72,8 @@ class OutboundForm
 
             Textarea::make('notes')->columnSpanFull(),
 
-            Select::make('status')
-                ->options([
-                    'pending' => 'Pending',
-                    'selesai' => 'Selesai',
-                    'dibatalkan' => 'Dibatalkan'
-                ])
-                ->default('selesai')
-                ->disabled(fn (string $operation) => $operation === 'edit')
-                ->required(),
+            Hidden::make('status')
+                ->default('pending'),
 
             Hidden::make('created_by')->default(fn() => auth()->id()),
             Hidden::make('total_amount')->default(0),
@@ -113,6 +106,7 @@ class OutboundForm
 
                     TextInput::make('quantity')
                         ->numeric()
+                        ->minValue(1)
                         ->required()
                         ->live(onBlur: true)
                         ->afterStateUpdated(function ($state, callable $get, callable $set, \Filament\Forms\Components\TextInput $component, $livewire) use ($updateTotal) {

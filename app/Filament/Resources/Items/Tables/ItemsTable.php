@@ -56,13 +56,14 @@ class ItemsTable
                         return match ($movement->type) {
                             'inbound' => 'Inbound (' . $movement->quantity . ')',
                             'outbound' => 'Outbound (' . $movement->quantity . ')',
+                            'return_in' => 'Return In (' . $movement->quantity . ')',
                             'return_out' => 'Retur (' . $movement->quantity . ')',
                             'adjustment' => 'Adjustment (' . $movement->quantity . ')',
-                            default => ucfirst($movement->type),
+                            default => ucfirst($movement->type) . ' (' . $movement->quantity . ')',
                         };
                     })
                     ->color(fn ($state) => match (true) {
-                        str_contains($state ?? '', 'Inbound') => 'success',
+                        str_contains($state ?? '', 'Inbound') || str_contains($state ?? '', 'Return In') => 'success',
                         str_contains($state ?? '', 'Outbound') => 'warning',
                         str_contains($state ?? '', 'Retur') => 'danger',
                         str_contains($state ?? '', 'Adjustment') => 'info',

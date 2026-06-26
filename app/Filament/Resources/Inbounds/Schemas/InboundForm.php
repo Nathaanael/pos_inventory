@@ -54,14 +54,8 @@ class InboundForm
                 ->label('No. Surat Jalan')
                 ->maxLength(50),
 
-            Select::make('status')
-                ->options([
-                    'pending' => 'Pending',
-                    'diterima' => 'Diterima',
-                ])
-                ->default('diterima')
-                ->disabled(fn (string $operation) => $operation === 'edit')
-                ->required(),
+            Hidden::make('status')
+                ->default('pending'),
 
             Hidden::make('total_amount')
                 ->default(0),
@@ -84,7 +78,7 @@ class InboundForm
                         ->relationship('item', 'name', function (Builder $query, $get) {
                             $supplierId = $get('../../supplier_id');
                             if ($supplierId) {
-                                $query->whereHas('suppliers', fn($q) => $q->where('suppliers.id', $supplierId));
+                                $query->where('supplier_id', $supplierId);
                             }
                         })
                         ->searchable()
@@ -102,15 +96,7 @@ class InboundForm
                             $item = \App\Models\Item::find($state);
                             if (!$item) return;
 
-                            // Use supplier-specific price from pivot if available, otherwise item's harga_beli
                             $buyPrice = $item->harga_beli;
-                            $supplierId = $get('../../supplier_id');
-                            if ($supplierId) {
-                                $supplier = $item->suppliers()->where('suppliers.id', $supplierId)->first();
-                                if ($supplier && $supplier->pivot->default_buy_price > 0) {
-                                    $buyPrice = $supplier->pivot->default_buy_price;
-                                }
-                            }
 
                             // Store in variable — $get('buy_price') won't reflect $set() in same callback
                             $set('buy_price', $buyPrice);
@@ -121,6 +107,7 @@ class InboundForm
 
                     TextInput::make('quantity')
                         ->numeric()
+                        ->minValue(1)
                         ->required()
                         ->live(onBlur: true)
                         ->afterStateUpdated(function ($state, callable $get, callable $set) use ($updateTotal, $parse) {

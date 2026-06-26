@@ -43,7 +43,19 @@ class InboundsTable
                     ->prefix('Rp ')
                     ->sortable(),
                 TextColumn::make('status')
-                    ->badge(),
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => match ($state instanceof \App\Enums\TransactionStatus ? $state->value : $state) {
+                        'diterima' => 'Diterima',
+                        'pending' => 'Pending',
+                        'voided' => 'Void',
+                        default => ucfirst((string) ($state instanceof \App\Enums\TransactionStatus ? $state->value : $state)),
+                    })
+                    ->color(fn ($state) => match ($state instanceof \App\Enums\TransactionStatus ? $state->value : $state) {
+                        'diterima' => 'success',
+                        'pending' => 'warning',
+                        'voided' => 'danger',
+                        default => 'gray',
+                    }),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -150,6 +162,62 @@ class InboundsTable
                             ->send();
                     })
                     ->visible(fn (Inbound $record) => $record->status->value === 'diterima' && ! $record->voided_at),
+            ])
+            ->bulkActions([
+                \Filament\Actions\BulkActionGroup::make([
+                    \Filament\Actions\DeleteBulkAction::make(),
+                    \Filament\Actions\BulkAction::make('approve')
+                        ->label('Approve Terpilih')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                            $count = 0;
+                            foreach ($records as $record) {
+                                if ($record->status->value !== 'pending') continue;
+
+                                \Illuminate\Support\Facades\DB::transaction(function () use ($record) {
+                                    $record->update([
+                                        'status' => \App\Enums\TransactionStatus::RECEIVED,
+                                    ]);
+
+                                    foreach ($record->items as $itemModel) {
+                                        $item = \App\Models\Item::lockForUpdate()->find($itemModel->item_id);
+                                        $stockBefore = $item->current_stock;
+                                        $item->current_stock += $itemModel->quantity;
+                                        $item->save();
+
+                                        \App\Models\StockMovement::create([
+                                            'item_id'        => $item->id,
+                                            'type'           => \App\Enums\MovementType::INBOUND->value,
+                                            'reference_id'   => $record->id,
+                                            'reference_type' => 'inbounds',
+                                            'quantity'       => $itemModel->quantity,
+                                            'stock_before'   => $stockBefore,
+                                            'stock_after'    => $item->current_stock,
+                                            'price'          => $itemModel->buy_price,
+                                            'notes'          => 'Barang Masuk (Approved Bulk)',
+                                            'created_by'     => auth()->id() ?? 1,
+                                        ]);
+                                    }
+                                });
+                                $count++;
+                            }
+                            
+                            if ($count > 0) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title("$count Transaksi Berhasil di-Approve")
+                                    ->success()
+                                    ->send();
+                            } else {
+                                \Filament\Notifications\Notification::make()
+                                    ->title("Tidak ada transaksi pending yang dipilih")
+                                    ->warning()
+                                    ->send();
+                            }
+                        })
+                        ->deselectRecordsAfterCompletion(),
+                ]),
             ])
             ->columnManager(false);
     }

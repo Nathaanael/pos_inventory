@@ -29,11 +29,15 @@
                     <td>{{ $movement->created_at->format('d M Y H:i') }}</td>
                     <td>
                         @php
-                            $typeLabel = ucfirst($movement->type);
+                            $typeLabel = match ($movement->type) {
+                                'return_in' => 'Return In',
+                                'return_out' => 'Retur',
+                                default => ucfirst($movement->type),
+                            };
                             $colorClass = match ($movement->type) {
-                                'inbound' => 'bg-inbound',
+                                'inbound', 'return_in' => 'bg-inbound',
                                 'outbound' => 'bg-outbound',
-                                'return_out' => 'bg-retur',
+                                'return_out', 'void' => 'bg-retur',
                                 'adjustment' => 'bg-adj',
                                 default => '',
                             };
