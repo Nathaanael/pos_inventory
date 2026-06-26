@@ -24,9 +24,19 @@ class ReturnTransactionViewForm
                         ->label('Tanggal')
                         ->native(false)
                         ->displayFormat('d F Y'),
+                    Select::make('type')
+                        ->label('Tipe Retur')
+                        ->options([
+                            'supplier' => 'Retur ke Supplier',
+                            'customer' => 'Retur dari Customer',
+                        ]),
                     Select::make('supplier_id')
                         ->label('Supplier')
-                        ->relationship('supplier', 'name'),
+                        ->relationship('supplier', 'name')
+                        ->visible(fn ($record) => $record?->type === 'supplier' || empty($record?->type)),
+                    TextInput::make('customer_name')
+                        ->label('Nama Customer')
+                        ->visible(fn ($record) => $record?->type === 'customer'),
                     \Filament\Forms\Components\Placeholder::make('status')
                         ->label('Status')
                         ->content(function ($record) {
