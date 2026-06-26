@@ -87,15 +87,8 @@ class ReturnTransactionForm
                 ->label('No. Referensi (Asal)')
                 ->maxLength(30),
 
-            Select::make('status')
-                ->label('Status')
-                ->options([
-                    'pending' => 'Pending',
-                    'selesai' => 'Disetujui',
-                    'ditolak' => 'Ditolak'
-                ])
-                ->default('pending')
-                ->required(),
+            Hidden::make('status')
+                ->default('pending'),
 
             TextInput::make('total_amount')
                 ->label('Total Harga Retur')
@@ -130,9 +123,7 @@ class ReturnTransactionForm
                             
                             if ($type === 'supplier') {
                                 if ($supplierId) {
-                                    $query->whereHas('suppliers', function ($q) use ($supplierId) {
-                                        $q->where('suppliers.id', $supplierId);
-                                    });
+                                    $query->where('supplier_id', $supplierId);
                                 } else {
                                     $query->whereRaw('1 = 0');
                                 }
