@@ -34,9 +34,8 @@ class StockOpnamesTable
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('total_difference')
-                    ->label('Total Varian')
-                    ->numeric()
-                    ->sortable(),
+                    ->label('Total Selisih')
+                    ->formatStateUsing(fn ($state) => $state > 0 ? "+{$state}" : (string) $state),
                 TextColumn::make('total_match')
                     ->label('Cocok')
                     ->numeric()
