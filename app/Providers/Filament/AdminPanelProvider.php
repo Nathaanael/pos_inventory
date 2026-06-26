@@ -31,6 +31,8 @@ class AdminPanelProvider extends PanelProvider
             ->path('')
             ->login()
             ->spa()
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('15s')
             ->brandName('Wahyu Jaya Electric')
             ->colors([
                 'primary' => Color::Amber,

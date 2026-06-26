@@ -3,6 +3,7 @@
 use App\Http\Controllers\OutboundPrintController;
 use App\Http\Controllers\StockOpnamePdfController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 // Filament Portal Panel handles the root route (/)
 
@@ -13,3 +14,17 @@ Route::get('/outbound/{outbound}/print', [OutboundPrintController::class, 'print
 Route::get('/stock-opname/{stockOpname}/pdf', [StockOpnamePdfController::class, 'download'])
     ->middleware(['web', 'auth'])
     ->name('stock-opname.pdf');
+
+Route::get('/exports/download/{filename}', function (string $filename) {
+    // Sanitize filename to prevent directory traversal
+    $filename = basename($filename);
+    $path = "exports/{$filename}";
+
+    if (!Storage::disk('local')->exists($path)) {
+        abort(404, 'File tidak ditemukan.');
+    }
+
+    return Storage::disk('local')->download($path, $filename, [
+        'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ]);
+})->middleware(['web', 'auth'])->name('export.download');
