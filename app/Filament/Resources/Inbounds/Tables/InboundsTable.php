@@ -24,6 +24,7 @@ class InboundsTable
         return $table
             ->recordAction('view')
             ->recordUrl(null)
+            ->searchPlaceholder('Cari...')
             ->columns([
                 TextColumn::make('transaction_code')
                     ->label('Kode Transaksi')
@@ -57,10 +58,12 @@ class InboundsTable
                         default => 'gray',
                     }),
                 TextColumn::make('created_at')
+                    ->label('Dibuat pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Diperbarui pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -70,19 +73,23 @@ class InboundsTable
             ])
             ->recordActions([
                 ViewAction::make()
+                    ->label('Lihat')
                     ->slideOver()
                     ->modalWidth('6xl')
                     ->form(InboundViewForm::schema())
                     ->modalAutofocus(false),
                 EditAction::make()
+                    ->label('Ubah')
                     ->visible(fn (Inbound $record) => $record->status->value === 'pending'),
                 Action::make('approve')
-                    ->label('Approve')
+                    ->label('Setujui')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->modalHeading('Approve Inbound')
+                    ->modalHeading('Setujui Barang Masuk')
                     ->modalDescription('Apakah Anda yakin ingin menyetujui transaksi ini? Stok barang akan bertambah secara otomatis.')
+                    ->modalSubmitActionLabel('Setujui')
+                    ->modalCancelActionLabel('Batal')
                     ->action(function (Inbound $record) {
                         DB::transaction(function () use ($record) {
                             $record->update([
@@ -111,20 +118,24 @@ class InboundsTable
                         });
 
                         Notification::make()
-                            ->title('Transaksi Berhasil di-Approve')
+                            ->title('Transaksi Berhasil Disetujui')
                             ->success()
                             ->send();
                     })
                     ->visible(fn (Inbound $record) => $record->status->value === 'pending'),
                 Action::make('void')
-                    ->label('Void')
+                    ->label('Batalkan')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
+                    ->modalHeading('Batalkan Transaksi')
+                    ->modalDescription('Apakah Anda yakin ingin membatalkan transaksi ini?')
+                    ->modalSubmitActionLabel('Batalkan')
+                    ->modalCancelActionLabel('Batal')
                     ->form([
                         Textarea::make('void_reason')
                             ->required()
-                            ->label('Alasan Void'),
+                            ->label('Alasan Pembatalan'),
                     ])
                     ->action(function (Inbound $record, array $data) {
                         DB::transaction(function () use ($record, $data) {
@@ -150,14 +161,14 @@ class InboundsTable
                                     'stock_before'   => $stockBefore,
                                     'stock_after'    => $item->current_stock,
                                     'price'          => $itemModel->buy_price,
-                                    'notes'          => 'Void Inbound: ' . $data['void_reason'],
+                                    'notes'          => 'Batal Barang Masuk: ' . $data['void_reason'],
                                     'created_by'     => auth()->id() ?? 1,
                                 ]);
                             }
                         });
 
                         Notification::make()
-                            ->title('Transaksi Berhasil di-Void')
+                            ->title('Transaksi Berhasil Dibatalkan')
                             ->success()
                             ->send();
                     })
@@ -165,12 +176,22 @@ class InboundsTable
             ])
             ->bulkActions([
                 \Filament\Actions\BulkActionGroup::make([
-                    \Filament\Actions\DeleteBulkAction::make(),
+                    \Filament\Actions\DeleteBulkAction::make()
+                        ->label('Hapus')
+                        ->modalHeading('Hapus Transaksi Terpilih')
+                        ->modalDescription('Apakah Anda yakin ingin menghapus transaksi yang dipilih?')
+                        ->modalSubmitActionLabel('Hapus')
+                        ->modalCancelActionLabel('Batal')
+                        ->successNotificationTitle('Berhasil dihapus'),
                     \Filament\Actions\BulkAction::make('approve')
-                        ->label('Approve Terpilih')
+                        ->label('Setujui Terpilih')
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->requiresConfirmation()
+                        ->modalHeading('Setujui Terpilih')
+                        ->modalDescription('Apakah Anda yakin ingin menyetujui transaksi terpilih?')
+                        ->modalSubmitActionLabel('Setujui')
+                        ->modalCancelActionLabel('Batal')
                         ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
                             $count = 0;
                             foreach ($records as $record) {
@@ -196,7 +217,7 @@ class InboundsTable
                                             'stock_before'   => $stockBefore,
                                             'stock_after'    => $item->current_stock,
                                             'price'          => $itemModel->buy_price,
-                                            'notes'          => 'Barang Masuk (Approved Bulk)',
+                                            'notes'          => 'Barang Masuk (Setujui Massal)',
                                             'created_by'     => auth()->id() ?? 1,
                                         ]);
                                     }
@@ -206,7 +227,7 @@ class InboundsTable
                             
                             if ($count > 0) {
                                 \Filament\Notifications\Notification::make()
-                                    ->title("$count Transaksi Berhasil di-Approve")
+                                    ->title("$count Transaksi Berhasil Disetujui")
                                     ->success()
                                     ->send();
                             } else {

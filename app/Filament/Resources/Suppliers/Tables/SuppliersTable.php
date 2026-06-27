@@ -15,16 +15,21 @@ class SuppliersTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->searchPlaceholder('Cari...')
             ->columns([
                 TextColumn::make('code')
+                    ->label('Kode')
                     ->searchable(),
                 TextColumn::make('name')
+                    ->label('Nama')
                     ->searchable(),
                 TextColumn::make('created_at')
+                    ->label('Dibuat pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Diperbarui pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -34,14 +39,24 @@ class SuppliersTable
             ])
             ->recordActions([
                 EditAction::make()
-                    ->modalAlignment('center'),
+                    ->label('Ubah')
+                    ->modalAlignment('center')
+                    ->modalSubmitActionLabel('Simpan')
+                    ->modalCancelActionLabel('Batal')
+                    ->successNotificationTitle('Berhasil diperbarui'),
                 DeleteAction::make()
+                    ->label('Hapus')
+                    ->modalHeading('Hapus Supplier')
+                    ->modalDescription('Apakah Anda yakin ingin menghapus supplier ini?')
+                    ->modalSubmitActionLabel('Hapus')
+                    ->modalCancelActionLabel('Batal')
+                    ->successNotificationTitle('Berhasil dihapus')
                     ->before(function ($record, DeleteAction $action) {
                         if ($record->inbounds()->exists()) {
                             \Filament\Notifications\Notification::make()
                                 ->danger()
                                 ->title('Gagal menghapus')
-                                ->body('Supplier ini sedang digunakan dalam transaksi Inbound.')
+                                ->body('Supplier ini sedang digunakan dalam transaksi Barang Masuk.')
                                 ->send();
                             
                             $action->cancel();
@@ -51,13 +66,19 @@ class SuppliersTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
+                        ->label('Hapus')
+                        ->modalHeading('Hapus Supplier Terpilih')
+                        ->modalDescription('Apakah Anda yakin ingin menghapus supplier yang dipilih?')
+                        ->modalSubmitActionLabel('Hapus')
+                        ->modalCancelActionLabel('Batal')
+                        ->successNotificationTitle('Berhasil dihapus')
                         ->before(function (\Illuminate\Database\Eloquent\Collection $records, DeleteBulkAction $action) {
                             foreach ($records as $record) {
                                 if ($record->inbounds()->exists()) {
                                     \Filament\Notifications\Notification::make()
                                         ->danger()
                                         ->title('Gagal menghapus')
-                                        ->body('Salah satu Supplier yang dipilih sedang digunakan dalam transaksi Inbound.')
+                                        ->body('Salah satu Supplier yang dipilih sedang digunakan dalam transaksi Barang Masuk.')
                                         ->send();
                                     
                                     $action->cancel();

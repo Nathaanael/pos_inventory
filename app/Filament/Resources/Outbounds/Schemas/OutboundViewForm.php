@@ -26,7 +26,7 @@ class OutboundViewForm
                         ->displayFormat('d F Y'),
 
                     TextInput::make('customer_name')
-                        ->label('Nama Klien / Customer'),
+                        ->label('Nama Pelanggan'),
                     TextInput::make('destination')
                         ->label('Tujuan'),
                     Select::make('price_type_applied')
@@ -55,20 +55,22 @@ class OutboundViewForm
                         ->mask(RawJs::make('$money($input)'))
                         ->stripCharacters(','),
                     Textarea::make('notes')
+                        ->label('Catatan')
                         ->columnSpanFull(),
                 ]),
 
             Section::make('Daftar Barang')
                 ->schema([
                     Repeater::make('items')
+                        ->label('Barang')
                         ->relationship('items')
                         ->schema([
                             Select::make('item_id')
                                 ->relationship('item', 'name')
-                                ->label('Item'),
+                                ->label('Barang'),
                             TextInput::make('quantity')
                                 ->numeric()
-                                ->label('Qty'),
+                                ->label('Kuantitas'),
                             TextInput::make('sell_price')
                                 ->label('Harga Jual')
                                 ->numeric()

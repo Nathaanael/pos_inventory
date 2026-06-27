@@ -12,6 +12,7 @@ class UnitForm
         return $schema
             ->components([
                 Select::make('name')
+                    ->label('Nama')
                     ->options([
                         'pcs' => 'Pcs',
                         'meter' => 'Meter',

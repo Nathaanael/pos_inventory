@@ -18,6 +18,11 @@ class EditStockOpname extends EditRecord
         return 'Lanjutkan Stock Opname';
     }
 
+    public function getBreadcrumb(): string
+    {
+        return 'Lanjutkan';
+    }
+
     protected function getHeaderActions(): array
     {
         return [
@@ -35,9 +40,9 @@ class EditStockOpname extends EditRecord
     {
         return [
             $this->getSaveFormAction()
-                ->label('Selesaikan (Completed)'),
+                ->label('Selesaikan'),
             Action::make('saveDraft')
-                ->label('Lanjutkan Nanti (Draft)')
+                ->label('Simpan Konsep')
                 ->color('warning')
                 ->action(function () {
                     $this->submitMode = 'draft';
@@ -50,8 +55,13 @@ class EditStockOpname extends EditRecord
 
                     $this->save();
                 }),
-            $this->getCancelFormAction(),
+            $this->getCancelFormAction()->label('Batal'),
         ];
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Berhasil diperbarui';
     }
 
     protected function mutateFormDataBeforeSave(array $data): array

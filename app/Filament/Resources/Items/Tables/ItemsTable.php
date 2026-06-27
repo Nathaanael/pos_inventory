@@ -23,12 +23,16 @@ class ItemsTable
         return $table
             ->recordAction('view')
             ->recordUrl(null)
+            ->searchPlaceholder('Cari...')
             ->columns([
                 TextColumn::make('code')
+                    ->label('Kode')
                     ->searchable(),
                 TextColumn::make('barcode')
+                    ->label('Barcode')
                     ->searchable(),
                 TextColumn::make('name')
+                    ->label('Nama')
                     ->searchable(),
                 // TextColumn::make('brand.name')
                 //     ->label('Merk')
@@ -39,10 +43,12 @@ class ItemsTable
                     ->badge()
                     ->searchable(),
                 TextColumn::make('harga_beli')
+                    ->label('Harga Beli')
                     ->numeric()
                     ->prefix('Rp ')
                     ->sortable(),
                 TextColumn::make('current_stock')
+                    ->label('Stok Saat Ini')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('latestMovement.type')
@@ -73,16 +79,20 @@ class ItemsTable
                 // TextColumn::make('rack_location')
                 //     ->searchable(),
                 IconColumn::make('is_active')
+                    ->label('Aktif')
                     ->boolean(),
                 TextColumn::make('created_at')
+                    ->label('Dibuat pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Diperbarui pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('deleted_at')
+                    ->label('Dihapus pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -110,11 +120,13 @@ class ItemsTable
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Tutup'),
                 ViewAction::make()
+                    ->label('Lihat')
                     ->slideOver()
                     ->modalWidth('6xl')
                     ->form(ItemViewForm::schema())
                     ->modalAutofocus(false),
-                EditAction::make(),
+                EditAction::make()
+                    ->label('Ubah'),
             ])
             ->columnManager(false);
             // ->toolbarActions([

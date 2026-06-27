@@ -48,8 +48,8 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
             ])
             ->navigationGroups([
-                'Data Management',
-                'Inventory',
+                'Manajemen Data',
+                'Inventaris',
                 'Aplikasi',
             ])
             ->navigationItems([

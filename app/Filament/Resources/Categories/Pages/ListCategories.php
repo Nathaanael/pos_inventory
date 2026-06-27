@@ -14,7 +14,12 @@ class ListCategories extends ManageRecords
     {
         return [
             CreateAction::make()
-                ->modalAlignment('center'),
+                ->label('Tambah Kategori')
+                ->modalAlignment('center')
+                ->modalSubmitActionLabel('Simpan')
+                ->modalCancelActionLabel('Batal')
+                ->createAnotherAction(fn ($action) => $action->label('Simpan & buat lagi'))
+                ->successNotificationTitle('Berhasil ditambah'),
         ];
     }
 }

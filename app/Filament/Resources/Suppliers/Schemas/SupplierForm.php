@@ -15,6 +15,7 @@ class SupplierForm
         return $schema
             ->components([
                 TextInput::make('code')
+                    ->label('Kode')
                     ->required()
                     ->default(fn () => static::generateCode())
                     ->unique(ignoreRecord: true)

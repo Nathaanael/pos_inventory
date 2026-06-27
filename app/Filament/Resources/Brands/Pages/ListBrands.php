@@ -13,7 +13,12 @@ class ListBrands extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->label('Tambah Merk')
+                ->modalSubmitActionLabel('Simpan')
+                ->modalCancelActionLabel('Batal')
+                ->createAnotherAction(fn ($action) => $action->label('Simpan & buat lagi'))
+                ->successNotificationTitle('Berhasil ditambah'),
         ];
     }
 }

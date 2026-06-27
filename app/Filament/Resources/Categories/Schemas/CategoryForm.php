@@ -13,6 +13,7 @@ class CategoryForm
         return $schema
             ->components([
                 TextInput::make('name')
+                    ->label('Nama')
                     ->required()
                     ->columnSpanFull(),
                 Select::make('parent_id')

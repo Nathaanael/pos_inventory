@@ -31,17 +31,20 @@ class InboundForm
 
         return $schema->components([
             TextInput::make('transaction_code')
+                ->label('Kode Transaksi')
                 ->default(fn() => 'IN-' . date('Y') . '-' . rand(1000, 9999))
                 ->required()
                 ->readOnly(),
 
             DatePicker::make('date')
+                ->label('Tanggal')
                 ->default(now())
                 ->native(false)
                 ->displayFormat('d F Y')
                 ->required(),
 
             Select::make('supplier_id')
+                ->label('Supplier')
                 ->relationship('supplier', 'name')
                 ->live()
                 ->required(),
@@ -61,13 +64,16 @@ class InboundForm
                 ->default(0),
 
             Textarea::make('notes')
+                ->label('Catatan')
                 ->columnSpanFull(),
 
             Hidden::make('created_by')
                 ->default(fn() => auth()->id()),
 
             Repeater::make('items')
+                ->label('Barang')
                 ->relationship('items')
+                ->addActionLabel('Tambah Barang')
                 ->deleteAction(
                     fn ($action) => $action->after(function (callable $get, callable $set) use ($updateTotal) {
                         $updateTotal($get, $set);
@@ -75,6 +81,7 @@ class InboundForm
                 )
                 ->schema([
                     Select::make('item_id')
+                        ->label('Barang')
                         ->relationship('item', 'name', function (Builder $query, $get) {
                             $supplierId = $get('../../supplier_id');
                             if ($supplierId) {
@@ -106,6 +113,7 @@ class InboundForm
                         }),
 
                     TextInput::make('quantity')
+                        ->label('Kuantitas')
                         ->numeric()
                         ->minValue(1)
                         ->required()
@@ -116,6 +124,7 @@ class InboundForm
                         }),
 
                     TextInput::make('buy_price')
+                        ->label('Harga Beli')
                         ->numeric()
                         ->prefix('Rp')
                         ->mask(RawJs::make('$money($input)'))
@@ -124,6 +133,7 @@ class InboundForm
                         ->readOnly(),
 
                     TextInput::make('subtotal')
+                        ->label('Subtotal')
                         ->numeric()
                         ->prefix('Rp')
                         ->mask(RawJs::make('$money($input)'))

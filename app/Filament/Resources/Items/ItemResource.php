@@ -20,9 +20,13 @@ class ItemResource extends Resource
 {
     protected static ?string $model = Item::class;
 
+    protected static ?string $modelLabel = 'Master Barang';
+    
+    protected static ?string $pluralModelLabel = 'Master Barang';
+
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cube';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Inventory';
+    protected static \UnitEnum|string|null $navigationGroup = 'Inventaris';
 
     protected static ?int $navigationSort = 4;
 

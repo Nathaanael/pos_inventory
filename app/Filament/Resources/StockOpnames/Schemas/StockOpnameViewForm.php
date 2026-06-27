@@ -44,15 +44,18 @@ class StockOpnameViewForm
                             );
                         }),
                     Textarea::make('notes')
+                        ->label('Catatan')
                         ->columnSpanFull(),
                 ]),
 
             Section::make('Detail Opname')
                 ->schema([
                     Repeater::make('items')
+                        ->label('Barang')
                         ->relationship('items')
                         ->schema([
                             Select::make('item_id')
+                                ->label('Barang')
                                 ->relationship('item', 'name'),
                             TextInput::make('system_stock')
                                 ->label('Sistem')

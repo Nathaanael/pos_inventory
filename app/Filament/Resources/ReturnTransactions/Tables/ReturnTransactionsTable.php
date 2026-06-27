@@ -19,6 +19,7 @@ class ReturnTransactionsTable
         return $table
             ->recordAction('view')
             ->recordUrl(null)
+            ->searchPlaceholder('Cari...')
             ->columns([
                 TextColumn::make('return_code')
                     ->label('Kode Retur')
@@ -62,10 +63,12 @@ class ReturnTransactionsTable
                     ->prefix('Rp ')
                     ->sortable(),
                 TextColumn::make('created_at')
+                    ->label('Dibuat pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Diperbarui pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -87,17 +90,20 @@ class ReturnTransactionsTable
                     ->url(fn ($record) => route('return-transaction.pdf', $record))
                     ->openUrlInNewTab(),
                 ViewAction::make()
+                    ->label('Lihat')
                     ->slideOver()
                     ->modalWidth('6xl')
                     ->form(ReturnTransactionViewForm::schema())
                     ->modalAutofocus(false),
                 Action::make('approve')
-                    ->label('Approve')
+                    ->label('Setujui')
                     ->color('success')
                     ->icon('heroicon-o-check-circle')
                     ->requiresConfirmation()
                     ->modalHeading('Setujui Retur')
                     ->modalDescription('Apakah Anda yakin ingin menyetujui retur ini?')
+                    ->modalSubmitActionLabel('Setujui')
+                    ->modalCancelActionLabel('Batal')
                     ->hidden(fn ($record) => ($record->status instanceof \App\Enums\TransactionStatus ? $record->status->value : $record->status) !== 'pending')
                     ->action(function ($record) {
                         \Illuminate\Support\Facades\DB::transaction(function () use ($record) {
@@ -136,30 +142,45 @@ class ReturnTransactionsTable
                                 ]);
                             }
                         });
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Transaksi Berhasil Disetujui')
+                            ->success()
+                            ->send();
                     }),
                 Action::make('reject')
-                    ->label('Reject')
+                    ->label('Tolak')
                     ->color('danger')
                     ->icon('heroicon-o-x-circle')
                     ->requiresConfirmation()
                     ->modalHeading('Tolak Retur')
                     ->modalDescription('Apakah Anda yakin ingin menolak retur ini?')
+                    ->modalSubmitActionLabel('Tolak')
+                    ->modalCancelActionLabel('Batal')
                     ->hidden(fn ($record) => ($record->status instanceof \App\Enums\TransactionStatus ? $record->status->value : $record->status) !== 'pending')
                     ->action(function ($record) {
                         $record->update(['status' => 'ditolak']);
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Transaksi Berhasil Ditolak')
+                            ->success()
+                            ->send();
                     }),
                 EditAction::make()
+                    ->label('Ubah')
                     ->visible(fn ($record) => ($record->status instanceof \App\Enums\TransactionStatus ? $record->status->value : $record->status) === 'pending'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     BulkAction::make('bulk_approve')
-                        ->label('Approve Selected')
+                        ->label('Setujui Terpilih')
                         ->color('success')
                         ->icon('heroicon-o-check-circle')
                         ->requiresConfirmation()
                         ->modalHeading('Setujui Retur Terpilih')
                         ->modalDescription('Apakah Anda yakin ingin menyetujui semua retur yang dipilih?')
+                        ->modalSubmitActionLabel('Setujui')
+                        ->modalCancelActionLabel('Batal')
                         ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
                             \Illuminate\Support\Facades\DB::transaction(function () use ($records) {
                                 foreach ($records as $record) {
@@ -201,17 +222,31 @@ class ReturnTransactionsTable
                                     }
                                 }
                             });
+
+                            $count = $records->count();
+                            \Filament\Notifications\Notification::make()
+                                ->title("$count Transaksi Berhasil Disetujui")
+                                ->success()
+                                ->send();
                         })
                         ->deselectRecordsAfterCompletion(),
                     BulkAction::make('bulk_reject')
-                        ->label('Reject Selected')
+                        ->label('Tolak Terpilih')
                         ->color('danger')
                         ->icon('heroicon-o-x-circle')
                         ->requiresConfirmation()
                         ->modalHeading('Tolak Retur Terpilih')
                         ->modalDescription('Apakah Anda yakin ingin menolak semua retur yang dipilih?')
+                        ->modalSubmitActionLabel('Tolak')
+                        ->modalCancelActionLabel('Batal')
                         ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
                             $records->each(fn ($record) => $record->update(['status' => 'ditolak']));
+
+                            $count = $records->count();
+                            \Filament\Notifications\Notification::make()
+                                ->title("$count Transaksi Berhasil Ditolak")
+                                ->success()
+                                ->send();
                         })
                         ->deselectRecordsAfterCompletion(),
                 ]),

@@ -18,9 +18,13 @@ class UnitResource extends Resource
 {
     protected static ?string $model = Unit::class;
 
+    protected static ?string $modelLabel = 'Satuan';
+    
+    protected static ?string $pluralModelLabel = 'Satuan';
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedScale;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Data Management';
+    protected static \UnitEnum|string|null $navigationGroup = 'Manajemen Data';
 
     protected static ?int $navigationSort = 2;
 

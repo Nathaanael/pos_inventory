@@ -79,7 +79,7 @@ class ReturnTransactionForm
                 ->visible(fn ($get) => $get('type') === 'supplier'),
 
             TextInput::make('customer_name')
-                ->label('Nama Customer')
+                ->label('Nama Pelanggan')
                 ->required(fn ($get) => $get('type') === 'customer')
                 ->visible(fn ($get) => $get('type') === 'customer'),
 
@@ -108,6 +108,8 @@ class ReturnTransactionForm
                 ->default(fn() => auth()->id()),
 
             Repeater::make('items')
+                ->label('Barang')
+                ->addActionLabel('Tambah Barang')
                 ->relationship('items')
                 ->deleteAction(
                     fn ($action) => $action->after(function (callable $get, callable $set) use ($updateTotal) {
@@ -161,7 +163,7 @@ class ReturnTransactionForm
                         ->dehydrated(false),
 
                     TextInput::make('quantity')
-                        ->label('Qty Retur')
+                        ->label('Kuantitas Retur')
                         ->numeric()
                         ->live(onBlur: true)
                         ->afterStateUpdated(function ($state, $get, $set, \Filament\Forms\Components\TextInput $component, $livewire) use ($updateTotal, $parse) {

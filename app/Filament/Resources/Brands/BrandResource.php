@@ -18,11 +18,15 @@ class BrandResource extends Resource
 {
     protected static ?string $model = Brand::class;
 
+    protected static ?string $modelLabel = 'Merk';
+    
+    protected static ?string $pluralModelLabel = 'Merk';
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedStar;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Data Management';
+    protected static \UnitEnum|string|null $navigationGroup = 'Manajemen Data';
 
-    protected static ?string $recordTitleAttribute = 'name';
+    // protected static ?string $recordTitleAttribute = 'name';
 
     public static function form(Schema $schema): Schema
     {

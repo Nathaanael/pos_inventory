@@ -15,13 +15,17 @@ class BrandForm
         return $schema
             ->components([
                 TextInput::make('name')
+                    ->label('Nama')
                     ->required(),
                 FileUpload::make('logo')
+                    ->label('Logo')
                     ->image()
                     ->directory('brands'),
                 Textarea::make('description')
+                    ->label('Deskripsi')
                     ->columnSpanFull(),
                 Toggle::make('is_active')
+                    ->label('Aktif')
                     ->default(true)
                     ->required(),
             ]);

@@ -18,14 +18,17 @@ class StockOpnameForm
 
         return $schema->components([ 
             TextInput::make('code')
+                ->label('Kode Sesi')
                 ->default(fn() => 'SO-'.date('Y').'-'.rand(1000, 9999))
                 ->required($isRequired)
                 ->readOnly(), 
                 
             TextInput::make('session_name')
+                ->label('Nama Sesi')
                 ->required($isRequired), 
                 
             DatePicker::make('date')
+                ->label('Tanggal')
                 ->default(now())
                 ->native(false)
                 ->displayFormat('d F Y')
@@ -36,15 +39,19 @@ class StockOpnameForm
                 ->default('selesai'), 
                 
             Textarea::make('notes')
+                ->label('Catatan')
                 ->columnSpanFull(), 
                 
             Hidden::make('created_by')
                 ->default(fn() => auth()->id()), 
                 
             Repeater::make('items')
+                ->label('Barang')
+                ->addActionLabel('Tambah Barang')
                 ->relationship('items')
                 ->schema([ 
                     Select::make('item_id')
+                        ->label('Barang')
                         ->relationship('item', 'name')
                         ->searchable()
                         ->preload()
@@ -58,11 +65,13 @@ class StockOpnameForm
                         }), 
                         
                     TextInput::make('system_stock')
+                        ->label('Stok Sistem')
                         ->numeric()
                         ->readOnly()
                         ->required($isRequired), 
                         
                     TextInput::make('physical_stock')
+                        ->label('Stok Fisik')
                         ->numeric()
                         ->required($isRequired)
                         ->reactive()
@@ -75,6 +84,7 @@ class StockOpnameForm
                         }), 
                         
                     TextInput::make('difference')
+                        ->label('Selisih')
                         ->numeric()
                         ->readOnly(), 
                         
@@ -88,7 +98,7 @@ class StockOpnameForm
                         ->dehydrated()
                         ->required($isRequired), 
                         
-                    TextInput::make('notes'), 
+                    TextInput::make('notes')->label('Catatan'), 
                 ])
                 ->columnSpanFull()
                 ->columns(6) 

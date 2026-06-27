@@ -17,6 +17,7 @@ class StockOpnamesTable
         return $table
             ->recordAction('view')
             ->recordUrl(null)
+            ->searchPlaceholder('Cari...')
             ->columns([
                 TextColumn::make('code')
                     ->label('Kode Sesi')
@@ -68,10 +69,12 @@ class StockOpnamesTable
                         default => 'gray',
                     }),
                 TextColumn::make('created_at')
+                    ->label('Dibuat pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Diperbarui pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -87,6 +90,7 @@ class StockOpnamesTable
                     ->url(fn ($record) => route('stock-opname.pdf', $record))
                     ->openUrlInNewTab(),
                 ViewAction::make()
+                    ->label('Lihat')
                     ->slideOver()
                     ->modalWidth('6xl')
                     ->form(StockOpnameViewForm::schema())

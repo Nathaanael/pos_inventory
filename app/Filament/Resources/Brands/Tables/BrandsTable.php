@@ -16,17 +16,23 @@ class BrandsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->searchPlaceholder('Cari...')
             ->columns([
                 TextColumn::make('name')
+                    ->label('Nama')
                     ->searchable(),
-                ImageColumn::make('logo'),
+                ImageColumn::make('logo')
+                    ->label('Logo'),
                 IconColumn::make('is_active')
+                    ->label('Aktif')
                     ->boolean(),
                 TextColumn::make('created_at')
+                    ->label('Dibuat pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Diperbarui pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -36,14 +42,24 @@ class BrandsTable
             ])
             ->recordActions([
                 EditAction::make()
-                    ->modalAlignment('center'),
+                    ->label('Ubah')
+                    ->modalAlignment('center')
+                    ->modalSubmitActionLabel('Simpan')
+                    ->modalCancelActionLabel('Batal')
+                    ->successNotificationTitle('Berhasil diperbarui'),
                 DeleteAction::make()
+                    ->label('Hapus')
+                    ->modalHeading('Hapus Merk')
+                    ->modalDescription('Apakah Anda yakin ingin menghapus merk ini?')
+                    ->modalSubmitActionLabel('Hapus')
+                    ->modalCancelActionLabel('Batal')
+                    ->successNotificationTitle('Berhasil dihapus')
                     ->before(function ($record, DeleteAction $action) {
                         if ($record->items()->exists()) {
                             \Filament\Notifications\Notification::make()
                                 ->danger()
                                 ->title('Gagal menghapus')
-                                ->body('Brand ini sedang digunakan oleh data Master Item.')
+                                ->body('Merk ini sedang digunakan oleh data Master Barang.')
                                 ->send();
                             
                             $action->cancel();
@@ -53,13 +69,19 @@ class BrandsTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
+                        ->label('Hapus')
+                        ->modalHeading('Hapus Merk Terpilih')
+                        ->modalDescription('Apakah Anda yakin ingin menghapus merk yang dipilih?')
+                        ->modalSubmitActionLabel('Hapus')
+                        ->modalCancelActionLabel('Batal')
+                        ->successNotificationTitle('Berhasil dihapus')
                         ->before(function (\Illuminate\Database\Eloquent\Collection $records, DeleteBulkAction $action) {
                             foreach ($records as $record) {
                                 if ($record->items()->exists()) {
                                     \Filament\Notifications\Notification::make()
                                         ->danger()
                                         ->title('Gagal menghapus')
-                                        ->body('Salah satu Brand yang dipilih sedang digunakan oleh data Master Item.')
+                                        ->body('Salah satu Merk yang dipilih sedang digunakan oleh data Master Barang.')
                                         ->send();
                                     
                                     $action->cancel();

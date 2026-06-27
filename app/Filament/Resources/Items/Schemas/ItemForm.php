@@ -21,6 +21,7 @@ class ItemForm
     {
         return $schema->components([
             TextInput::make('code')
+                ->label('Kode')
                 ->required()
                 ->default(fn () => static::generateCode())
                 ->unique(ignoreRecord: true)
@@ -35,9 +36,11 @@ class ItemForm
                     'unique' => 'barcode ini sudah ada',
                 ]),
             TextInput::make('name')
+                ->label('Nama')
                 ->required()
                 ->autofocus(),
             Select::make('brand_id')
+                ->label('Merk')
                 ->relationship('brand', 'name')
                 ->preload()
                 ->searchable(),
@@ -47,47 +50,59 @@ class ItemForm
                 ->preload()
                 ->required(),
             Textarea::make('description')
+                ->label('Deskripsi')
                 ->columnSpanFull(),
             Select::make('category_id')
+                ->label('Kategori')
                 ->relationship('category', 'name')
                 ->required(),
             Select::make('unit_id')
+                ->label('Satuan')
                 ->relationship('unit', 'name')
                 ->required(),
             TextInput::make('harga_beli')
+                ->label('Harga Beli')
                 ->prefix('Rp')
                 ->required()
                 ->numeric()
                 ->mask(RawJs::make('$money($input)'))
                 ->stripCharacters(','),
             TextInput::make('harga_jual_retail')
+                ->label('Harga Jual Retail')
                 ->prefix('Rp')
                 ->required()
                 ->numeric()
                 ->mask(RawJs::make('$money($input)'))
                 ->stripCharacters(','),
             TextInput::make('harga_jual_grosir')
+                ->label('Harga Jual Grosir')
                 ->prefix('Rp')
                 ->required()
                 ->numeric()
                 ->mask(RawJs::make('$money($input)'))
                 ->stripCharacters(','),
             TextInput::make('min_grosir_qty')
+                ->label('Min Qty Grosir')
                 ->required()
                 ->numeric(),
             TextInput::make('current_stock')
+                ->label('Stok Saat Ini')
                 ->required()
                 ->numeric()
                 ->default(0)
                 ->disabled()
                 ->dehydrated(),
             TextInput::make('min_stock')
+                ->label('Min Stok')
                 ->required()
                 ->numeric(),
-            TextInput::make('rack_location'),
+            TextInput::make('rack_location')
+                ->label('Lokasi Rak'),
             FileUpload::make('image')
+                ->label('Gambar')
                 ->image(),
             Toggle::make('is_active')
+                ->label('Aktif')
                 ->default(true)
                 ->required(),
         ]);

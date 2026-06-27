@@ -16,9 +16,13 @@ class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
 
+    protected static ?string $modelLabel = 'Kategori';
+    
+    protected static ?string $pluralModelLabel = 'Kategori';
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Data Management';
+    protected static \UnitEnum|string|null $navigationGroup = 'Manajemen Data';
 
     protected static ?int $navigationSort = 1;
 

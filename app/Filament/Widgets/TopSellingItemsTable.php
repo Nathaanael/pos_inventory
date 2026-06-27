@@ -54,12 +54,12 @@ class TopSellingItemsTable extends BaseWidget
                     ->label('Nama Barang')
                     ->wrap(),
                 Tables\Columns\TextColumn::make('total_qty')
-                    ->label('Qty')
+                    ->label('Kuantitas')
                     ->numeric()
                     ->badge()
                     ->color('success'),
                 Tables\Columns\TextColumn::make('total_revenue')
-                    ->label('Revenue')
+                    ->label('Pendapatan')
                     ->money('IDR')
                     ->alignRight(),
                 Tables\Columns\TextColumn::make('total_profit')

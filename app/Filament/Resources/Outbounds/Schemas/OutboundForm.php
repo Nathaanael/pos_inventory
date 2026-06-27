@@ -33,18 +33,21 @@ class OutboundForm
 
         return $schema->components([
             TextInput::make('transaction_code')
+                ->label('Kode Transaksi')
                 ->default(fn() => 'OUT-' . date('Y') . '-' . rand(1000, 9999))
                 ->required()
                 ->readOnly(),
 
             DatePicker::make('date')
+                ->label('Tanggal')
                 ->default(now())
                 ->required(),
 
-            TextInput::make('customer_name'),
-            TextInput::make('destination'),
+            TextInput::make('customer_name')->label('Nama Pelanggan'),
+            TextInput::make('destination')->label('Tujuan'),
 
             Select::make('price_type_applied')
+                ->label('Tipe Harga')
                 ->options([
                     'retail' => 'Retail',
                     'grosir' => 'Grosir'
@@ -70,7 +73,7 @@ class OutboundForm
                     $updateTotal($get, $set);
                 }),
 
-            Textarea::make('notes')->columnSpanFull(),
+            Textarea::make('notes')->label('Catatan')->columnSpanFull(),
 
             Hidden::make('status')
                 ->default('pending'),
@@ -80,9 +83,12 @@ class OutboundForm
             Hidden::make('total_cogs')->default(0),
 
             Repeater::make('items')
+                ->label('Barang')
+                ->addActionLabel('Tambah Barang')
                 ->relationship('items')
                 ->schema([
                     Select::make('item_id')
+                        ->label('Barang')
                         ->relationship('item', 'name', fn (\Illuminate\Database\Eloquent\Builder $query) => $query->where('is_active', true))
                         ->searchable()
                         ->preload()
@@ -105,6 +111,7 @@ class OutboundForm
                         }),
 
                     TextInput::make('quantity')
+                        ->label('Kuantitas')
                         ->numeric()
                         ->minValue(1)
                         ->required()
@@ -133,6 +140,7 @@ class OutboundForm
                         ]),
 
                     TextInput::make('sell_price')
+                        ->label('Harga Jual')
                         ->prefix('Rp')
                         ->mask(\Filament\Support\RawJs::make('$money($input, \'.\', \',\', 0)'))
                         ->stripCharacters(',')
@@ -145,6 +153,7 @@ class OutboundForm
                         }),
 
                     TextInput::make('cogs_price')
+                        ->label('Harga Pokok')
                         ->prefix('Rp')
                         ->mask(\Filament\Support\RawJs::make('$money($input, \'.\', \',\', 0)'))
                         ->stripCharacters(',')
@@ -152,6 +161,7 @@ class OutboundForm
                         ->readOnly(),
                         
                     TextInput::make('subtotal')
+                        ->label('Subtotal')
                         ->prefix('Rp')
                         ->mask(\Filament\Support\RawJs::make('$money($input, \'.\', \',\', 0)'))
                         ->stripCharacters(',')

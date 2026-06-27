@@ -14,12 +14,13 @@ class EditBrand extends EditRecord
     {
         return [
             DeleteAction::make()
+                ->label('Hapus')
                 ->before(function ($record, DeleteAction $action) {
                     if ($record->items()->exists()) {
                         \Filament\Notifications\Notification::make()
                             ->danger()
                             ->title('Gagal menghapus')
-                            ->body('Brand ini sedang digunakan oleh data Master Item.')
+                            ->body('Merk ini sedang digunakan oleh data Master Barang.')
                             ->send();
                         
                         $action->cancel();

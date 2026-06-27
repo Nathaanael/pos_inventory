@@ -35,7 +35,7 @@ class ReturnTransactionViewForm
                         ->relationship('supplier', 'name')
                         ->visible(fn ($record) => $record?->type === 'supplier' || empty($record?->type)),
                     TextInput::make('customer_name')
-                        ->label('Nama Customer')
+                        ->label('Nama Pelanggan')
                         ->visible(fn ($record) => $record?->type === 'customer'),
                     \Filament\Forms\Components\Placeholder::make('status')
                         ->label('Status')
@@ -71,6 +71,7 @@ class ReturnTransactionViewForm
             Section::make('Daftar Barang Retur')
                 ->schema([
                     Repeater::make('items')
+                        ->label('Barang')
                         ->relationship('items')
                         ->schema([
                             Select::make('item_id')

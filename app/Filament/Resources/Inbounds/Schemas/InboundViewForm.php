@@ -27,6 +27,7 @@ class InboundViewForm
                         ->native(false)
                         ->displayFormat('d F Y'),
                     Select::make('supplier_id')
+                        ->label('Supplier')
                         ->relationship('supplier', 'name'),
                     Select::make('status')
                         ->options([
@@ -40,24 +41,30 @@ class InboundViewForm
                         ->mask(RawJs::make('$money($input)'))
                         ->stripCharacters(','),
                     Textarea::make('notes')
+                        ->label('Catatan')
                         ->columnSpanFull(),
                 ]),
 
             Section::make('Daftar Barang')
                 ->schema([
                     Repeater::make('items')
+                        ->label('Barang')
                         ->relationship('items')
                         ->schema([
                             Select::make('item_id')
+                                ->label('Barang')
                                 ->relationship('item', 'name'),
                             TextInput::make('quantity')
+                                ->label('Kuantitas')
                                 ->numeric(),
                             TextInput::make('buy_price')
+                                ->label('Harga Beli')
                                 ->numeric()
                                 ->prefix('Rp')
                                 ->mask(RawJs::make('$money($input)'))
                                 ->stripCharacters(','),
                             TextInput::make('subtotal')
+                                ->label('Subtotal')
                                 ->numeric()
                                 ->prefix('Rp')
                                 ->mask(RawJs::make('$money($input)'))

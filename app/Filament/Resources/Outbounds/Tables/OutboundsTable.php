@@ -16,15 +16,20 @@ class OutboundsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->searchPlaceholder('Cari...')
             ->columns([
                 TextColumn::make('transaction_code')
+                    ->label('Kode Transaksi')
                     ->searchable(),
                 TextColumn::make('date')
+                    ->label('Tanggal')
                     ->date()
                     ->sortable(),
                 TextColumn::make('customer_name')
+                    ->label('Nama Pelanggan')
                     ->searchable(),
                 TextColumn::make('price_type_applied')
+                    ->label('Tipe Harga')
                     ->badge(),
                 TextColumn::make('status')
                     ->badge()
@@ -41,16 +46,20 @@ class OutboundsTable
                         default => 'gray',
                     }),
                 TextColumn::make('total_amount')
+                    ->label('Total Nominal')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('total_cogs')
+                    ->label('Total HPP')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('created_at')
+                    ->label('Dibuat pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Diperbarui pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -60,17 +69,20 @@ class OutboundsTable
             ])
             ->recordActions([
                 ViewAction::make()
+                    ->label('Lihat')
                     ->slideOver()
                     ->modalWidth('6xl')
                     ->form(OutboundViewForm::schema())
                     ->modalAutofocus(false),
                 Action::make('print_nota')
-                    ->label('Print Nota')
+                    ->label('Cetak Nota')
                     ->icon('heroicon-o-printer')
                     ->color('info')
                     ->requiresConfirmation()
                     ->modalHeading('Cetak Nota')
                     ->modalDescription('Cetak nota langsung ke printer thermal?')
+                    ->modalSubmitActionLabel('Cetak')
+                    ->modalCancelActionLabel('Batal')
                     ->action(function ($record) {
                         try {
                             $record->load(['items.item.unit', 'createdBy']);
@@ -89,14 +101,17 @@ class OutboundsTable
                     })
                     ->visible(fn ($record) => $record->status->value === 'selesai'),
                 EditAction::make()
+                    ->label('Ubah')
                     ->visible(fn ($record) => $record->status->value === 'pending'),
                 Action::make('approve')
-                    ->label('Approve')
+                    ->label('Setujui')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->modalHeading('Approve Outbound')
+                    ->modalHeading('Setujui Barang Keluar')
                     ->modalDescription('Apakah Anda yakin ingin menyetujui transaksi ini? Stok barang akan berkurang secara otomatis.')
+                    ->modalSubmitActionLabel('Setujui')
+                    ->modalCancelActionLabel('Batal')
                     ->action(function ($record) {
                         \Illuminate\Support\Facades\DB::transaction(function () use ($record) {
                             $record->update([
@@ -132,18 +147,22 @@ class OutboundsTable
                         });
 
                         \Filament\Notifications\Notification::make()
-                            ->title('Transaksi Berhasil di-Approve')
+                            ->title('Transaksi Berhasil Disetujui')
                             ->success()
                             ->send();
                     })
                     ->visible(fn ($record) => $record->status->value === 'pending'),
                 Action::make('void')
-                    ->label('Void')
+                    ->label('Batalkan')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
+                    ->modalHeading('Batalkan Transaksi')
+                    ->modalDescription('Apakah Anda yakin ingin membatalkan transaksi ini?')
+                    ->modalSubmitActionLabel('Batalkan')
+                    ->modalCancelActionLabel('Batal')
                     ->form([
-                        \Filament\Forms\Components\Textarea::make('void_reason')->required()->label('Alasan Void')
+                        \Filament\Forms\Components\Textarea::make('void_reason')->required()->label('Alasan Pembatalan')
                     ])
                     ->action(function ($record, array $data) {
                         \Illuminate\Support\Facades\DB::transaction(function () use ($record, $data) {
@@ -167,23 +186,33 @@ class OutboundsTable
                                     'stock_before' => $stockBefore,
                                     'stock_after' => $item->current_stock,
                                     'price' => $itemModel->sell_price,
-                                    'notes' => 'Void Outbound: ' . $data['void_reason'],
+                                    'notes' => 'Batal Barang Keluar: ' . $data['void_reason'],
                                     'created_by' => auth()->id() ?? 1
                                 ]);
                             }
                         });
-                        \Filament\Notifications\Notification::make()->title('Transaksi Berhasil di-Void')->success()->send();
+                        \Filament\Notifications\Notification::make()->title('Transaksi Berhasil Dibatalkan')->success()->send();
                     })
                     ->visible(fn ($record) => in_array($record->status->value, ['selesai', 'diterima']) && !$record->voided_at),
             ])
             ->bulkActions([
                 \Filament\Actions\BulkActionGroup::make([
-                    \Filament\Actions\DeleteBulkAction::make(),
+                    \Filament\Actions\DeleteBulkAction::make()
+                        ->label('Hapus')
+                        ->modalHeading('Hapus Transaksi Terpilih')
+                        ->modalDescription('Apakah Anda yakin ingin menghapus transaksi yang dipilih?')
+                        ->modalSubmitActionLabel('Hapus')
+                        ->modalCancelActionLabel('Batal')
+                        ->successNotificationTitle('Berhasil dihapus'),
                     \Filament\Actions\BulkAction::make('approve')
-                        ->label('Approve Terpilih')
+                        ->label('Setujui Terpilih')
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->requiresConfirmation()
+                        ->modalHeading('Setujui Terpilih')
+                        ->modalDescription('Apakah Anda yakin ingin menyetujui transaksi terpilih?')
+                        ->modalSubmitActionLabel('Setujui')
+                        ->modalCancelActionLabel('Batal')
                         ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
                             $count = 0;
                             foreach ($records as $record) {
@@ -219,7 +248,7 @@ class OutboundsTable
                                             'stock_before'   => $stockBefore,
                                             'stock_after'    => $item->current_stock,
                                             'price'          => $itemModel->sell_price,
-                                            'notes'          => 'Barang Keluar (Approved Bulk)',
+                                            'notes'          => 'Barang Keluar (Setujui Massal)',
                                             'created_by'     => auth()->id() ?? 1,
                                         ]);
                                     }
@@ -229,7 +258,7 @@ class OutboundsTable
                             
                             if ($count > 0) {
                                 \Filament\Notifications\Notification::make()
-                                    ->title("$count Transaksi Berhasil di-Approve")
+                                    ->title("$count Transaksi Berhasil Disetujui")
                                     ->success()
                                     ->send();
                             } else {

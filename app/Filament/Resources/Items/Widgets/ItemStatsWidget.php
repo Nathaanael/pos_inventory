@@ -44,7 +44,7 @@ class ItemStatsWidget extends BaseWidget
                 ->color($lowStockItems > 0 ? 'danger' : 'success'),
                 
             Stat::make('Pergerakan Hari Ini', $movementsToday)
-                ->description('Mutasi stok (Inbound/Outbound/dll)')
+                ->description('Mutasi stok (Barang Masuk/Keluar/dll)')
                 ->descriptionIcon('heroicon-m-arrow-path-rounded-square')
                 ->color('info'),
         ];

@@ -18,9 +18,13 @@ class OutboundResource extends Resource
 {
     protected static ?string $model = Outbound::class;
 
+    protected static ?string $modelLabel = 'Barang Keluar';
+    
+    protected static ?string $pluralModelLabel = 'Barang Keluar';
+
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-arrow-up-on-square-stack';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Inventory';
+    protected static \UnitEnum|string|null $navigationGroup = 'Inventaris';
 
     protected static ?int $navigationSort = 6;
 

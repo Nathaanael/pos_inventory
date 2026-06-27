@@ -14,7 +14,12 @@ class ListUnits extends ManageRecords
     {
         return [
             CreateAction::make()
-                ->modalAlignment('center'),
+                ->label('Tambah Satuan')
+                ->modalAlignment('center')
+                ->modalSubmitActionLabel('Simpan')
+                ->modalCancelActionLabel('Batal')
+                ->createAnotherAction(fn ($action) => $action->label('Simpan & buat lagi'))
+                ->successNotificationTitle('Berhasil ditambah'),
         ];
     }
 }

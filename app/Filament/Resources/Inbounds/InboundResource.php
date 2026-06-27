@@ -18,9 +18,13 @@ class InboundResource extends Resource
 {
     protected static ?string $model = Inbound::class;
 
+    protected static ?string $modelLabel = 'Barang Masuk';
+    
+    protected static ?string $pluralModelLabel = 'Barang Masuk';
+
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-arrow-down-on-square-stack';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Inventory';
+    protected static \UnitEnum|string|null $navigationGroup = 'Inventaris';
 
     protected static ?int $navigationSort = 5;
 

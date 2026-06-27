@@ -10,15 +10,25 @@ class CreateStockOpname extends CreateRecord
 {
     protected static string $resource = StockOpnameResource::class;
 
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return 'Tambah Stock Opname';
+    }
+
+    public function getBreadcrumb(): string
+    {
+        return 'Tambah';
+    }
+
     public string $submitMode = 'selesai';
 
     protected function getFormActions(): array
     {
         return [
             $this->getCreateFormAction()
-                ->label('Selesaikan (Completed)'),
+                ->label('Selesaikan'),
             Action::make('saveDraft')
-                ->label('Lanjutkan Nanti (Draft)')
+                ->label('Simpan Konsep')
                 ->color('warning')
                 ->action(function () {
                     $this->submitMode = 'draft';
@@ -31,7 +41,7 @@ class CreateStockOpname extends CreateRecord
 
                     $this->create();
                 }),
-            $this->getCancelFormAction(),
+            $this->getCancelFormAction()->label('Batal'),
         ];
     }
 
@@ -63,6 +73,16 @@ class CreateStockOpname extends CreateRecord
         $data['total_difference'] = $total_diff;
 
         return $data;
+    }
+
+    protected function getCancelFormAction(): \Filament\Actions\Action
+    {
+        return parent::getCancelFormAction()->label('Batal');
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return 'Berhasil ditambah';
     }
 
     protected function getRedirectUrl(): string
