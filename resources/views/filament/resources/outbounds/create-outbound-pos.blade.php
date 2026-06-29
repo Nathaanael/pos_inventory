@@ -9,7 +9,7 @@
         }
         @media (min-width: 1024px) {
             .pos-container {
-                grid-template-columns: 58% 42%;
+                grid-template-columns: 58fr 42fr;
             }
         }
 
@@ -18,6 +18,7 @@
             display: flex;
             flex-direction: column;
             gap: 1rem;
+            min-width: 0;
         }
         .pos-search-bar {
             position: relative;
@@ -83,10 +84,7 @@
             transition: all 0.2s ease;
             white-space: nowrap;
         }
-        .pos-category-pill:hover {
-            border-color: #f59e0b;
-            color: #b45309;
-        }
+
         .pos-category-pill.active {
             background: linear-gradient(135deg, #f59e0b, #d97706);
             color: #ffffff;
@@ -98,10 +96,7 @@
             border-color: rgba(255,255,255,0.1);
             color: #9ca3af;
         }
-        .dark .pos-category-pill:hover {
-            border-color: #f59e0b;
-            color: #fbbf24;
-        }
+
         .dark .pos-category-pill.active {
             background: linear-gradient(135deg, #f59e0b, #d97706);
             color: #ffffff;
@@ -128,14 +123,14 @@
             background: #ffffff;
             border: 1px solid #e5e7eb;
             border-radius: 0.75rem;
-            padding: 2rem 0.75rem 1rem;
+            padding: 3.5rem 1rem 1rem 1rem;
             cursor: pointer;
             transition: all 0.2s ease;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
-            min-height: 7.5rem;
+            min-height: 8.5rem;
             gap: 0.25rem;
         }
         .pos-product-card::before {
@@ -147,12 +142,7 @@
             background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(217,119,6,0.04));
             transition: opacity 0.2s ease;
         }
-        .pos-product-card:hover {
-            border-color: #f59e0b;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        .pos-product-card:hover::before { opacity: 1; }
+
 
         .pos-product-card:active {
             transform: translateY(0);
@@ -162,19 +152,12 @@
             opacity: 0.45;
             cursor: not-allowed;
         }
-        .pos-product-card.out-of-stock:hover {
-            transform: none;
-            box-shadow: none;
-            border-color: #e5e7eb;
-        }
+
         .dark .pos-product-card {
             background: rgba(255,255,255,0.03);
             border-color: rgba(255,255,255,0.08);
         }
-        .dark .pos-product-card:hover {
-            border-color: #f59e0b;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
+
 
 
 
@@ -203,26 +186,17 @@
 
         .pos-stock-badge {
             position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
+            top: 0.75rem;
+            right: 0.75rem;
             font-size: 0.6875rem;
             font-weight: 600;
-            padding: 0.125rem 0.5rem;
+            padding: 0.25rem 0.5rem;
             border-radius: 9999px;
-            z-index: 1;
+            z-index: 10;
         }
-        .pos-stock-badge.in-stock {
-            background: rgba(16, 185, 129, 0.1);
-            color: #059669;
-        }
-        .pos-stock-badge.low-stock {
-            background: rgba(245, 158, 11, 0.1);
-            color: #d97706;
-        }
-        .pos-stock-badge.no-stock {
-            background: rgba(239, 68, 68, 0.1);
-            color: #dc2626;
-        }
+        .pos-stock-badge.in-stock { background: #dcfce7; color: #166534; }
+        .pos-stock-badge.low-stock { background: #fef9c3; color: #854d0e; }
+        .pos-stock-badge.no-stock { background: #fee2e2; color: #991b1b; }
         .dark .pos-stock-badge.in-stock { background: rgba(16,185,129,0.15); color: #34d399; }
         .dark .pos-stock-badge.low-stock { background: rgba(245,158,11,0.15); color: #fbbf24; }
         .dark .pos-stock-badge.no-stock { background: rgba(239,68,68,0.15); color: #f87171; }
@@ -236,6 +210,7 @@
             border: 1px solid #e5e7eb;
             border-radius: 1rem;
             overflow: hidden;
+            min-width: 0;
         }
         .dark .pos-right {
             background: rgba(255,255,255,0.03);
@@ -297,6 +272,9 @@
             color: #1f2937;
             transition: all 0.15s ease;
             outline: none;
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
         }
         .pos-form-input:focus {
             border-color: #f59e0b;
@@ -355,7 +333,7 @@
             font-weight: 500;
             transition: color 0.15s;
         }
-        .pos-cart-clear:hover { color: #dc2626; }
+
 
         .pos-cart-items {
             display: flex;
@@ -375,9 +353,7 @@
             border: 1px solid #f3f4f6;
             transition: all 0.15s ease;
         }
-        .pos-cart-item:hover {
-            border-color: #e5e7eb;
-        }
+
         .dark .pos-cart-item {
             background: rgba(255,255,255,0.03);
             border-color: rgba(255,255,255,0.05);
@@ -425,18 +401,12 @@
             font-weight: 600;
             transition: all 0.15s;
         }
-        .pos-cart-qty button:hover {
-            background: #e5e7eb;
-            color: #1f2937;
-        }
+
         .dark .pos-cart-qty button {
             background: rgba(255,255,255,0.05);
             color: #9ca3af;
         }
-        .dark .pos-cart-qty button:hover {
-            background: rgba(255,255,255,0.1);
-            color: #f3f4f6;
-        }
+
         .pos-cart-qty input {
             width: 2.5rem;
             height: 1.75rem;
@@ -480,10 +450,7 @@
             transition: all 0.15s;
             flex-shrink: 0;
         }
-        .pos-cart-remove:hover {
-            color: #ef4444;
-            background: rgba(239, 68, 68, 0.08);
-        }
+
 
         .pos-cart-empty {
             text-align: center;
@@ -571,10 +538,7 @@
             color: #ffffff;
             box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
         }
-        .pos-btn-primary:hover {
-            box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
-            transform: translateY(-1px);
-        }
+
         .pos-btn-primary:active {
             transform: translateY(0);
             box-shadow: 0 1px 4px rgba(245, 158, 11, 0.3);
@@ -589,19 +553,13 @@
             color: #6b7280;
             border: 1px solid #e5e7eb;
         }
-        .pos-btn-secondary:hover {
-            background: #e5e7eb;
-            color: #374151;
-        }
+
         .dark .pos-btn-secondary {
             background: rgba(255,255,255,0.05);
             color: #9ca3af;
             border-color: rgba(255,255,255,0.1);
         }
-        .dark .pos-btn-secondary:hover {
-            background: rgba(255,255,255,0.1);
-            color: #f3f4f6;
-        }
+
 
         /* Divider */
         .pos-divider {
@@ -648,8 +606,18 @@
     <div class="pos-container">
         {{-- ═══════ LEFT PANEL: Product Catalog ═══════ --}}
         <div class="pos-left">
+            {{-- Title & Code --}}
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.25rem;">
+                <div>
+                    <h2 style="font-size: 1.25rem; font-weight: 700; color: #1f2937; margin: 0 0 0.5rem 0;">Tambah Barang Keluar</h2>
+                    <span style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);">
+                        {{ $transaction_code }}
+                    </span>
+                </div>
+            </div>
+
             {{-- Search Bar --}}
-            <div class="pos-search-bar">
+            <div class="pos-search-bar" style="margin-top: 0.5rem;">
                 <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                 </svg>
@@ -698,6 +666,13 @@
                             x-on:click="$el.classList.add('just-added'); setTimeout(() => $el.classList.remove('just-added'), 500)"
                         @endif
                     >
+                        {{-- Icon --}}
+                        <div style="position: absolute; top: 0.75rem; left: 0.75rem; width: 2.25rem; height: 2.25rem; background: #ffedd5; color: #d97706; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                            </svg>
+                        </div>
+
                         {{-- Stock Badge --}}
                         <span class="pos-stock-badge {{ $isOutOfStock ? 'no-stock' : ($isLowStock ? 'low-stock' : 'in-stock') }}">
                             {{ $isOutOfStock ? 'Habis' : $item->current_stock . ' ' . ($item->unit->name ?? 'pcs') }}
@@ -720,55 +695,55 @@
             </div>
         </div>
 
-        {{-- ═══════ RIGHT PANEL: Cart & Form ═══════ --}}
         <div class="pos-right">
-            {{-- Header --}}
-            <div class="pos-right-header">
-                <h3>Barang Keluar</h3>
-                <div class="code">{{ $transaction_code }}</div>
-            </div>
-
             {{-- Body --}}
             <div class="pos-right-body">
-                {{-- Form Fields --}}
-                <div class="pos-form-grid">
-                    <div class="pos-form-group">
-                        <label class="pos-form-label">Tanggal</label>
-                        <div x-data="{ editing: false }">
-                            <div 
-                                x-show="!editing" 
-                                @click="editing = true; $nextTick(() => $refs.dateInput.focus())" 
-                                class="pos-form-input" 
-                                style="cursor: pointer; display: flex; align-items: center;"
-                            >
-                                {{ \Carbon\Carbon::parse($date)->locale('id')->translatedFormat('d F Y') }}
-                            </div>
-                            <input 
-                                x-show="editing" 
-                                x-ref="dateInput"
-                                type="date" 
-                                wire:model.live="date" 
-                                @blur="editing = false"
-                                @change="editing = false"
-                                class="pos-form-input" 
-                                style="width: 100%;"
-                            />
+                {{-- Top Right Icons & Date --}}
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; color: #f59e0b;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 1.5rem; height: 1.5rem;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                    </svg>
+                    <div x-data="{ editing: false }" style="color: #4b5563; font-size: 0.875rem; display: flex; align-items: center; gap: 0.25rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1rem; height: 1rem;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                        </svg>
+                        <div 
+                            x-show="!editing" 
+                            @click="editing = true; $nextTick(() => $refs.dateInput.focus())" 
+                            style="cursor: pointer; font-weight: 500;"
+                        >
+                            {{ \Carbon\Carbon::parse($date)->locale('id')->translatedFormat('d M Y') }}
                         </div>
+                        <input 
+                            x-show="editing" 
+                            x-ref="dateInput"
+                            type="date" 
+                            wire:model.live="date" 
+                            @blur="editing = false"
+                            @change="editing = false"
+                            style="border: 1px solid #e5e7eb; border-radius: 0.375rem; padding: 0.125rem 0.25rem; font-size: 0.75rem;"
+                        />
+                    </div>
+                </div>
+
+                {{-- Form Fields --}}
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+                    <div class="pos-form-group">
+                        <label class="pos-form-label" style="text-transform: uppercase; font-size: 0.6875rem; letter-spacing: 0.05em;">Pelanggan</label>
+                        <input type="text" wire:model="customer_name" class="pos-form-input" placeholder="Nama pelanggan..." />
                     </div>
                     <div class="pos-form-group">
+                        <label class="pos-form-label" style="text-transform: uppercase; font-size: 0.6875rem; letter-spacing: 0.05em;">Tujuan</label>
+                        <input type="text" wire:model="destination" class="pos-form-input" placeholder="Tujuan pengiriman..." />
+                    </div>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <div class="pos-form-group" style="width: 50%;">
                         <label class="pos-form-label">Tipe Harga</label>
                         <select wire:model.live="price_type_applied" class="pos-form-input">
                             <option value="retail">Retail</option>
                             <option value="grosir">Grosir</option>
                         </select>
-                    </div>
-                    <div class="pos-form-group">
-                        <label class="pos-form-label">Pelanggan</label>
-                        <input type="text" wire:model="customer_name" class="pos-form-input" placeholder="Opsional" />
-                    </div>
-                    <div class="pos-form-group">
-                        <label class="pos-form-label">Tujuan</label>
-                        <input type="text" wire:model="destination" class="pos-form-input" placeholder="Opsional" />
                     </div>
                 </div>
 
@@ -830,7 +805,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
                             </svg>
                             <p style="font-weight: 500;">Keranjang kosong</p>
-                            <p style="font-size: 0.75rem; margin-top: 0.25rem;">Klik barang di sebelah kiri untuk menambahkan</p>
+                            <p style="font-size: 0.75rem; margin-top: 0.25rem;">Klik produk untuk menambahkan</p>
                         </div>
                     @endforelse
                 </div>
@@ -850,13 +825,22 @@
                     $totalQty = collect($cartItems)->sum('quantity');
                 @endphp
 
+                @php
+                    $margin = $totalAmount - $totalCogs;
+                @endphp
                 <div class="pos-summary-row">
-                    <span class="label">Total Item</span>
-                    <span class="value">{{ count($cartItems) }} jenis ({{ $totalQty }} pcs)</span>
+                    <span class="label">Subtotal ({{ count($cartItems) }} item)</span>
+                    <span class="value">Rp {{ number_format($totalAmount, 0, ',', '.') }}</span>
                 </div>
                 <div class="pos-summary-row">
                     <span class="label">Total HPP</span>
                     <span class="value">Rp {{ number_format($totalCogs, 0, ',', '.') }}</span>
+                </div>
+                <div class="pos-summary-row">
+                    <span class="label">Margin</span>
+                    <span class="value" style="color: #059669;">
+                        {{ $margin > 0 ? 'Rp ' . number_format($margin, 0, ',', '.') : '-' }}
+                    </span>
                 </div>
 
                 <div class="pos-summary-total">
