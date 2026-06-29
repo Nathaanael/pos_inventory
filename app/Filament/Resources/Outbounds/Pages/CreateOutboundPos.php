@@ -123,7 +123,7 @@ class CreateOutboundPos extends Page
             'image' => $item->image,
             'quantity' => 1,
             'sell_price' => (float) $sellPrice,
-            'cogs_price' => (float) $item->harga_beli,
+            'cogs_price' => (float) $item->calculateFifoCogs(1),
             'subtotal' => (float) $sellPrice,
             'max_stock' => $item->current_stock,
         ];
@@ -158,6 +158,9 @@ class CreateOutboundPos extends Page
 
         $this->cartItems[$index]['quantity'] = $qty;
         $this->cartItems[$index]['subtotal'] = $qty * $this->cartItems[$index]['sell_price'];
+        if ($item) {
+            $this->cartItems[$index]['cogs_price'] = (float) $item->calculateFifoCogs($qty);
+        }
         $this->recalculateTotals();
     }
 

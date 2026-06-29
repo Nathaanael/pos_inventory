@@ -100,4 +100,63 @@ class Item extends Model
 
         $this->update($updates);
     }
+
+    /**
+     * Calculate average COGS based on FIFO logic from item_supplier stocks.
+     */
+    public function calculateFifoCogs(int $quantity): float
+    {
+        if ($quantity <= 0) {
+            return 0;
+        }
+
+        $supplierStocks = $this->itemSuppliers()
+            ->where('current_stock', '>', 0)
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $remainingQty = $quantity;
+        $totalCogs = 0;
+
+        foreach ($supplierStocks as $supplierStock) {
+            if ($remainingQty <= 0) break;
+
+            $deduct = min($remainingQty, $supplierStock->current_stock);
+            $totalCogs += ($deduct * $supplierStock->harga_beli);
+            $remainingQty -= $deduct;
+        }
+
+        // If not enough stock in pivot, fallback to item's default harga_beli for the rest
+        if ($remainingQty > 0) {
+            $totalCogs += ($remainingQty * $this->harga_beli);
+        }
+
+        return $totalCogs / $quantity;
+    }
+
+    /**
+     * Deduct stock based on FIFO logic from item_supplier stocks.
+     */
+    public function deductFifoStock(int $quantity): void
+    {
+        if ($quantity <= 0) return;
+        
+        $supplierStocks = $this->itemSuppliers()
+            ->where('current_stock', '>', 0)
+            ->orderBy('id', 'asc')
+            ->lockForUpdate()
+            ->get();
+
+        $remainingQty = $quantity;
+
+        foreach ($supplierStocks as $supplierStock) {
+            if ($remainingQty <= 0) break;
+
+            $deduct = min($remainingQty, $supplierStock->current_stock);
+            $supplierStock->current_stock -= $deduct;
+            $supplierStock->save();
+
+            $remainingQty -= $deduct;
+        }
+    }
 }

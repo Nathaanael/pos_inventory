@@ -104,7 +104,8 @@ class OutboundForm
                             }
                             $item = \App\Models\Item::find($state);
                             if (!$item) return;
-                            $set('cogs_price', $item->harga_beli);
+                            $qty = (int) ($get('quantity') ?: 1);
+                            $set('cogs_price', $item->calculateFifoCogs($qty));
                             $pt = $livewire->data['price_type_applied'] ?? 'retail';
                             $set('sell_price', $pt == 'grosir' ? $item->harga_jual_grosir : $item->harga_jual_retail);
                             $updateTotal($get, $set);
@@ -123,10 +124,15 @@ class OutboundForm
                             
                             if ($state) {
                                 $item = \App\Models\Item::find($get('item_id'));
-                                if ($item && $state > $item->current_stock) {
-                                    throw \Illuminate\Validation\ValidationException::withMessages([
-                                        $component->getStatePath() => "Stok tidak cukup. Tersedia: {$item->current_stock}",
-                                    ]);
+                                if ($item) {
+                                    $set('cogs_price', $item->calculateFifoCogs((int)$state));
+                                    $updateTotal($get, $set); // update total_cogs after recalculating cogs_price
+
+                                    if ($state > $item->current_stock) {
+                                        throw \Illuminate\Validation\ValidationException::withMessages([
+                                            $component->getStatePath() => "Stok tidak cukup. Tersedia: {$item->current_stock}",
+                                        ]);
+                                    }
                                 }
                             }
                         })

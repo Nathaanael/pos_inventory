@@ -130,6 +130,9 @@ class OutboundsTable
 
                                 $item->current_stock -= $itemModel->quantity;
                                 $item->save();
+                                
+                                // FIFO Supplier Balancing
+                                $item->deductFifoStock($itemModel->quantity);
 
                                 \App\Models\StockMovement::create([
                                     'item_id'        => $item->id,
@@ -238,6 +241,9 @@ class OutboundsTable
                                         $stockBefore = $item->current_stock;
                                         $item->current_stock -= $itemModel->quantity;
                                         $item->save();
+
+                                        // FIFO Supplier Balancing
+                                        $item->deductFifoStock($itemModel->quantity);
 
                                         \App\Models\StockMovement::create([
                                             'item_id'        => $item->id,
