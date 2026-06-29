@@ -25,7 +25,7 @@ class Supplier extends Model
     public function suppliedItems()
     {
         return $this->belongsToMany(Item::class, 'item_supplier')
-            ->withPivot(['harga_beli', 'current_stock', 'supplier_sku', 'is_primary'])
+            ->withPivot(['harga_beli', 'current_stock', 'supplier_sku'])
             ->withTimestamps();
     }
 

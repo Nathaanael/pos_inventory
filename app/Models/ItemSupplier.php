@@ -13,7 +13,6 @@ class ItemSupplier extends Model
 
     protected $casts = [
         'harga_beli' => 'decimal:2',
-        'is_primary' => 'boolean',
     ];
 
     public function item(): BelongsTo

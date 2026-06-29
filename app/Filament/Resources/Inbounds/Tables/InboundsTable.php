@@ -102,6 +102,14 @@ class InboundsTable
                                 $item->current_stock += $itemModel->quantity;
                                 $item->save();
 
+                                // Update per-supplier stock
+                                $supplierId = $record->supplier_id;
+                                if ($supplierId) {
+                                    \App\Models\ItemSupplier::where('item_id', $item->id)
+                                        ->where('supplier_id', $supplierId)
+                                        ->increment('current_stock', $itemModel->quantity);
+                                }
+
                                 StockMovement::create([
                                     'item_id'        => $item->id,
                                     'type'           => MovementType::INBOUND->value,
@@ -151,6 +159,14 @@ class InboundsTable
                                 $stockBefore = $item->current_stock;
                                 $item->current_stock -= $itemModel->quantity;
                                 $item->save();
+
+                                // Revert per-supplier stock
+                                $supplierId = $record->supplier_id;
+                                if ($supplierId) {
+                                    \App\Models\ItemSupplier::where('item_id', $item->id)
+                                        ->where('supplier_id', $supplierId)
+                                        ->decrement('current_stock', $itemModel->quantity);
+                                }
 
                                 StockMovement::create([
                                     'item_id'        => $item->id,
@@ -207,6 +223,14 @@ class InboundsTable
                                         $stockBefore = $item->current_stock;
                                         $item->current_stock += $itemModel->quantity;
                                         $item->save();
+
+                                        // Update per-supplier stock
+                                        $supplierId = $record->supplier_id;
+                                        if ($supplierId) {
+                                            \App\Models\ItemSupplier::where('item_id', $item->id)
+                                                ->where('supplier_id', $supplierId)
+                                                ->increment('current_stock', $itemModel->quantity);
+                                        }
 
                                         \App\Models\StockMovement::create([
                                             'item_id'        => $item->id,

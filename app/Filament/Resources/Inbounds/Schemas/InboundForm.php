@@ -10,6 +10,8 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Hidden;
 use Filament\Schemas\Schema;
 use Filament\Support\RawJs;
+use App\Models\Item;
+use App\Models\ItemSupplier;
 use Illuminate\Database\Eloquent\Builder;
 
 class InboundForm
@@ -47,7 +49,40 @@ class InboundForm
                 ->label('Supplier')
                 ->relationship('supplier', 'name')
                 ->live()
-                ->required(),
+                ->required()
+                ->afterStateUpdated(function ($state, callable $get, callable $set) use ($parse) {
+                    $items = $get('items');
+                    if (!is_array($items)) return;
+
+                    $total = 0;
+
+                    foreach ($items as $key => $item) {
+                        $itemId = $item['item_id'] ?? null;
+                        if (!$itemId) continue;
+
+                        $itemSupplier = ItemSupplier::where('item_id', $itemId)
+                            ->where('supplier_id', $state)
+                            ->first();
+
+                        if (!$itemSupplier) {
+                            $set("items.{$key}.item_id", null);
+                            $set("items.{$key}.buy_price", 0);
+                            $set("items.{$key}.subtotal", 0);
+                            continue;
+                        }
+
+                        $buyPrice = $itemSupplier->harga_beli;
+                        $qty = $parse($item['quantity'] ?? 0);
+                        $subtotal = $qty * $parse($buyPrice);
+
+                        $set("items.{$key}.buy_price", $buyPrice);
+                        $set("items.{$key}.subtotal", $subtotal);
+
+                        $total += $subtotal;
+                    }
+
+                    $set('total_amount', $total);
+                }),
 
             TextInput::make('supplier_invoice_no')
                 ->label('No. Invoice Supplier')
@@ -85,7 +120,9 @@ class InboundForm
                         ->relationship('item', 'name', function (Builder $query, $get) {
                             $supplierId = $get('../../supplier_id');
                             if ($supplierId) {
-                                $query->where('supplier_id', $supplierId);
+                                $query->whereHas('itemSuppliers', function ($q) use ($supplierId) {
+                                    $q->where('supplier_id', $supplierId);
+                                });
                             }
                         })
                         ->searchable()
@@ -103,7 +140,12 @@ class InboundForm
                             $item = \App\Models\Item::find($state);
                             if (!$item) return;
 
-                            $buyPrice = $item->harga_beli;
+                            // Get buy price from item_supplier for the specific supplier
+                            $supplierId = $get('../../supplier_id');
+                            $itemSupplier = \App\Models\ItemSupplier::where('item_id', $state)
+                                ->where('supplier_id', $supplierId)
+                                ->first();
+                            $buyPrice = $itemSupplier ? $itemSupplier->harga_beli : $item->harga_beli;
 
                             // Store in variable — $get('buy_price') won't reflect $set() in same callback
                             $set('buy_price', $buyPrice);

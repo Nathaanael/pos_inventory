@@ -95,11 +95,8 @@ class ItemViewForm
                                 ->numeric(),
                             TextInput::make('supplier_sku')
                                 ->label('SKU Supplier'),
-                            Toggle::make('is_primary')
-                                ->label('Utama')
-                                ->inline(false),
                         ])
-                        ->columns(5)
+                        ->columns(4)
                         ->addable(false)
                         ->deletable(false)
                         ->reorderable(false),

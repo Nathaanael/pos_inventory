@@ -37,6 +37,14 @@ class InboundItem extends Model
                 $item->current_stock += $model->quantity;
                 $item->save();
 
+                // Update per-supplier stock in item_supplier pivot
+                $supplierId = $model->inbound->supplier_id;
+                if ($supplierId) {
+                    \App\Models\ItemSupplier::where('item_id', $model->item_id)
+                        ->where('supplier_id', $supplierId)
+                        ->increment('current_stock', $model->quantity);
+                }
+
                 \App\Models\StockMovement::create([
                     'item_id' => $item->id,
                     'type' => MovementType::INBOUND->value,

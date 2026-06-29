@@ -80,7 +80,7 @@ class ItemStockExport extends BaseExport implements FromArray, WithTitle
                         $isFirst ? ($item->category?->name ?? '-') : '',
                         $isFirst ? ($item->brand?->name ?? '-') : '',
                         $isFirst ? ($item->unit?->name ?? '-') : '',
-                        ($itemSupplier->supplier?->name ?? '-') . ($itemSupplier->is_primary ? ' ★' : ''),
+                        $itemSupplier->supplier?->name ?? '-',
                         $itemSupplier->harga_beli,
                         $isFirst ? $item->harga_jual_retail : '',
                         $isFirst ? $item->harga_jual_grosir : '',

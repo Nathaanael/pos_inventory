@@ -45,7 +45,7 @@ class Item extends Model
     public function suppliers()
     {
         return $this->belongsToMany(Supplier::class, 'item_supplier')
-            ->withPivot(['harga_beli', 'current_stock', 'supplier_sku', 'is_primary'])
+            ->withPivot(['harga_beli', 'current_stock', 'supplier_sku'])
             ->withTimestamps();
     }
 
@@ -77,8 +77,8 @@ class Item extends Model
      * Sync aggregate/cache fields on items table from item_supplier data.
      * 
      * Updates:
-     * - supplier_id: set to primary supplier's ID (backward compat for transaction forms)
-     * - harga_beli: set to primary supplier's buy price (backward compat)
+     * - supplier_id: set to first supplier's ID (backward compat for transaction forms)
+     * - harga_beli: set to first supplier's buy price (backward compat)
      * 
      * Note: current_stock is NOT recalculated here. It remains managed by
      * transaction events (InboundItem, OutboundItem, etc.) until those modules
@@ -86,8 +86,7 @@ class Item extends Model
      */
     public function syncAggregateFields(): void
     {
-        $primary = $this->itemSuppliers()->where('is_primary', true)->first()
-            ?? $this->itemSuppliers()->first();
+        $primary = $this->itemSuppliers()->first();
 
         $updates = [];
 
