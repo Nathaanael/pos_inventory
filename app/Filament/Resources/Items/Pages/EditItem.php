@@ -50,4 +50,14 @@ class EditItem extends EditRecord
     {
         return 'Berhasil diperbarui';
     }
+
+    /**
+     * After saving the item and its item_supplier records,
+     * sync the aggregate fields (supplier_id, harga_beli) on the items table
+     * for backward compatibility with existing transaction forms.
+     */
+    protected function afterSave(): void
+    {
+        $this->record->syncAggregateFields();
+    }
 }

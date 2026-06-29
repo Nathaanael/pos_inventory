@@ -32,7 +32,8 @@ class ItemStockExport extends BaseExport implements FromArray, WithTitle
             'Harga Jual Retail',
             'Harga Jual Grosir',
             'Min. Qty Grosir',
-            'Stok Saat Ini',
+            'Stok Supplier',
+            'Total Stok',
             'Min. Stok',
             'Lokasi Rak',
             'Status',
@@ -41,30 +42,59 @@ class ItemStockExport extends BaseExport implements FromArray, WithTitle
 
     protected function getDataRows(): array
     {
-        $items = Item::with(['category', 'brand', 'unit', 'supplier'])
+        $items = Item::with(['category', 'brand', 'unit', 'itemSuppliers.supplier'])
             ->orderBy('name')
             ->get();
 
         $rows = [];
         $no = 1;
         foreach ($items as $item) {
-            $rows[] = [
-                $no++,
-                $item->code,
-                $item->name,
-                $item->category?->name ?? '-',
-                $item->brand?->name ?? '-',
-                $item->unit?->name ?? '-',
-                $item->supplier?->name ?? '-',
-                $item->harga_beli,
-                $item->harga_jual_retail,
-                $item->harga_jual_grosir,
-                $item->min_grosir_qty,
-                $item->current_stock,
-                $item->min_stock,
-                $item->rack_location ?? '-',
-                $item->is_active ? 'Aktif' : 'Nonaktif',
-            ];
+            if ($item->itemSuppliers->isEmpty()) {
+                // Item without any supplier — show with dash
+                $rows[] = [
+                    $no++,
+                    $item->code,
+                    $item->name,
+                    $item->category?->name ?? '-',
+                    $item->brand?->name ?? '-',
+                    $item->unit?->name ?? '-',
+                    '-',
+                    $item->harga_beli,
+                    $item->harga_jual_retail,
+                    $item->harga_jual_grosir,
+                    $item->min_grosir_qty,
+                    '-',
+                    $item->current_stock,
+                    $item->min_stock,
+                    $item->rack_location ?? '-',
+                    $item->is_active ? 'Aktif' : 'Nonaktif',
+                ];
+            } else {
+                // One row per item-supplier combination
+                $isFirst = true;
+                foreach ($item->itemSuppliers as $itemSupplier) {
+                    $rows[] = [
+                        $isFirst ? $no : '',
+                        $isFirst ? $item->code : '',
+                        $isFirst ? $item->name : '',
+                        $isFirst ? ($item->category?->name ?? '-') : '',
+                        $isFirst ? ($item->brand?->name ?? '-') : '',
+                        $isFirst ? ($item->unit?->name ?? '-') : '',
+                        ($itemSupplier->supplier?->name ?? '-') . ($itemSupplier->is_primary ? ' ★' : ''),
+                        $itemSupplier->harga_beli,
+                        $isFirst ? $item->harga_jual_retail : '',
+                        $isFirst ? $item->harga_jual_grosir : '',
+                        $isFirst ? $item->min_grosir_qty : '',
+                        $itemSupplier->current_stock,
+                        $isFirst ? $item->current_stock : '',
+                        $isFirst ? $item->min_stock : '',
+                        $isFirst ? ($item->rack_location ?? '-') : '',
+                        $isFirst ? ($item->is_active ? 'Aktif' : 'Nonaktif') : '',
+                    ];
+                    $isFirst = false;
+                }
+                $no++;
+            }
         }
 
         return $rows;
@@ -84,15 +114,16 @@ class ItemStockExport extends BaseExport implements FromArray, WithTitle
             'D' => 15,  // Kategori
             'E' => 15,  // Brand
             'F' => 10,  // Satuan
-            'G' => 20,  // Supplier
+            'G' => 22,  // Supplier
             'H' => 15,  // Harga Beli
             'I' => 16,  // Harga Jual Retail
             'J' => 16,  // Harga Jual Grosir
             'K' => 14,  // Min Qty Grosir
-            'L' => 12,  // Stok Saat Ini
-            'M' => 10,  // Min Stok
-            'N' => 12,  // Lokasi Rak
-            'O' => 10,  // Status
+            'L' => 13,  // Stok Supplier
+            'M' => 12,  // Total Stok
+            'N' => 10,  // Min Stok
+            'O' => 12,  // Lokasi Rak
+            'P' => 10,  // Status
         ];
     }
 

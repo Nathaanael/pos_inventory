@@ -26,9 +26,36 @@ class Item extends Model
         return $this->belongsTo(Unit::class);
     }
 
+    /**
+     * Legacy single-supplier relationship.
+     * 
+     * @deprecated Use itemSuppliers() for multi-supplier support.
+     * Kept for backward compatibility with existing transaction forms
+     * (Inbound, Outbound, Return) until those modules are updated.
+     */
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    /**
+     * Many-to-many relationship with suppliers via pivot table.
+     * Use this for querying which suppliers can provide this item.
+     */
+    public function suppliers()
+    {
+        return $this->belongsToMany(Supplier::class, 'item_supplier')
+            ->withPivot(['harga_beli', 'current_stock', 'supplier_sku', 'is_primary'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Direct access to pivot records as a hasMany relationship.
+     * Used by Filament Repeater for CRUD operations on supplier data.
+     */
+    public function itemSuppliers()
+    {
+        return $this->hasMany(ItemSupplier::class);
     }
 
     public function prices()
@@ -44,5 +71,34 @@ class Item extends Model
     public function latestMovement()
     {
         return $this->hasOne(StockMovement::class)->latestOfMany();
+    }
+
+    /**
+     * Sync aggregate/cache fields on items table from item_supplier data.
+     * 
+     * Updates:
+     * - supplier_id: set to primary supplier's ID (backward compat for transaction forms)
+     * - harga_beli: set to primary supplier's buy price (backward compat)
+     * 
+     * Note: current_stock is NOT recalculated here. It remains managed by
+     * transaction events (InboundItem, OutboundItem, etc.) until those modules
+     * are updated to also track per-supplier stock.
+     */
+    public function syncAggregateFields(): void
+    {
+        $primary = $this->itemSuppliers()->where('is_primary', true)->first()
+            ?? $this->itemSuppliers()->first();
+
+        $updates = [];
+
+        if ($primary) {
+            $updates['supplier_id'] = $primary->supplier_id;
+            $updates['harga_beli'] = $primary->harga_beli;
+        } else {
+            $updates['supplier_id'] = null;
+            $updates['harga_beli'] = 0;
+        }
+
+        $this->update($updates);
     }
 }

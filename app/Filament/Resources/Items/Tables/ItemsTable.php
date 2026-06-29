@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Items\Tables;
 
 use App\Filament\Resources\Items\Schemas\ItemViewForm;
+use App\Models\Supplier;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -34,11 +35,7 @@ class ItemsTable
                 TextColumn::make('name')
                     ->label('Nama')
                     ->searchable(),
-                // TextColumn::make('brand.name')
-                //     ->label('Merk')
-                //     ->badge()
-                //     ->searchable(),
-                TextColumn::make('supplier.name')
+                TextColumn::make('suppliers.name')
                     ->label('Supplier')
                     ->badge()
                     ->searchable(),
@@ -46,7 +43,14 @@ class ItemsTable
                     ->label('Harga Beli')
                     ->numeric()
                     ->prefix('Rp ')
-                    ->sortable(),
+                    ->sortable()
+                    ->description(function ($record) {
+                        $count = $record->itemSuppliers->count();
+                        if ($count > 1) {
+                            return $count . ' supplier';
+                        }
+                        return null;
+                    }),
                 TextColumn::make('current_stock')
                     ->label('Stok Saat Ini')
                     ->numeric()
@@ -101,6 +105,16 @@ class ItemsTable
                 \Filament\Tables\Filters\SelectFilter::make('brand_id')
                     ->relationship('brand', 'name')
                     ->label('Merk')
+                    ->searchable()
+                    ->preload(),
+                \Filament\Tables\Filters\SelectFilter::make('supplier')
+                    ->label('Supplier')
+                    ->options(fn () => Supplier::where('is_active', true)->pluck('name', 'id'))
+                    ->query(fn ($query, array $data) =>
+                        !empty($data['value'])
+                            ? $query->whereHas('itemSuppliers', fn ($q) => $q->where('supplier_id', $data['value']))
+                            : $query
+                    )
                     ->searchable()
                     ->preload(),
                 TernaryFilter::make('is_active')

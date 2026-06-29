@@ -43,4 +43,25 @@ class CreateItem extends CreateRecord
     {
         return 'Berhasil ditambah';
     }
+
+    /**
+     * Set default harga_beli before creating the item record.
+     * The actual value will be synced from the primary supplier in afterCreate().
+     */
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data['harga_beli'] = 0;
+
+        return $data;
+    }
+
+    /**
+     * After the item and its item_supplier records are created,
+     * sync the aggregate fields (supplier_id, harga_beli) on the items table
+     * for backward compatibility with existing transaction forms.
+     */
+    protected function afterCreate(): void
+    {
+        $this->record->syncAggregateFields();
+    }
 }

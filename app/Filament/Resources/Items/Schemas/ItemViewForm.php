@@ -7,6 +7,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Repeater;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 
@@ -24,7 +25,11 @@ class ItemViewForm
                         ->columns(1)
                         ->schema([
                             TextInput::make('code')->label('Kode'),
+                            TextInput::make('barcode')->label('Barcode'),
                             TextInput::make('name')->label('Nama'),
+                            Select::make('brand_id')
+                                ->label('Merk')
+                                ->relationship('brand', 'name'),
                             Select::make('category_id')
                                 ->label('Kategori')
                                 ->relationship('category', 'name'),
@@ -37,10 +42,6 @@ class ItemViewForm
                     Section::make('Harga & Stok')
                         ->columns(1)
                         ->schema([
-                            TextInput::make('harga_beli')
-                                ->label('Harga Beli')
-                                ->prefix('Rp')
-                                ->formatStateUsing(fn ($state) => number_format((float) ($state ?? 0))),
                             TextInput::make('harga_jual_retail')
                                 ->label('Harga Jual Retail')
                                 ->prefix('Rp')
@@ -53,7 +54,7 @@ class ItemViewForm
                                 ->label('Min Qty Grosir')
                                 ->numeric(),
                             TextInput::make('current_stock')
-                                ->label('Stok Saat Ini')
+                                ->label('Total Stok')
                                 ->numeric(),
                             TextInput::make('min_stock')
                                 ->label('Min Stok')
@@ -70,13 +71,39 @@ class ItemViewForm
                             FileUpload::make('image')
                                 ->label('Gambar')
                                 ->image(),
-                            Select::make('supplier_id')
-                                ->label('Supplier')
-                                ->relationship('supplier', 'name')
-                                ->preload(),
                         ]),
                 ]),
-            ])
+            ]),
+
+            // Supplier section - full width below the grid
+            Section::make('Supplier & Harga Beli')
+                ->description('Daftar supplier yang menyuplai barang ini')
+                ->schema([
+                    Repeater::make('itemSuppliers')
+                        ->label('')
+                        ->relationship('itemSuppliers')
+                        ->schema([
+                            Select::make('supplier_id')
+                                ->label('Supplier')
+                                ->relationship('supplier', 'name'),
+                            TextInput::make('harga_beli')
+                                ->label('Harga Beli')
+                                ->prefix('Rp')
+                                ->formatStateUsing(fn ($state) => number_format((float) ($state ?? 0))),
+                            TextInput::make('current_stock')
+                                ->label('Stok Supplier')
+                                ->numeric(),
+                            TextInput::make('supplier_sku')
+                                ->label('SKU Supplier'),
+                            Toggle::make('is_primary')
+                                ->label('Utama')
+                                ->inline(false),
+                        ])
+                        ->columns(5)
+                        ->addable(false)
+                        ->deletable(false)
+                        ->reorderable(false),
+                ]),
         ];
     }
 }
