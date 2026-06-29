@@ -125,7 +125,9 @@ class ReturnTransactionForm
                             
                             if ($type === 'supplier') {
                                 if ($supplierId) {
-                                    $query->where('supplier_id', $supplierId);
+                                    $query->whereHas('suppliers', function($q) use ($supplierId) {
+                                        $q->where('suppliers.id', $supplierId);
+                                    });
                                 } else {
                                     $query->whereRaw('1 = 0');
                                 }
@@ -139,11 +141,24 @@ class ReturnTransactionForm
                             if ($state) {
                                 $item = \App\Models\Item::find($state);
                                 $set('current_stock', $item?->current_stock ?? 0);
-                                $set('price', $item?->harga_beli ?? 0);
-                                $qty = $parse($get('quantity') ?: 0);
+                                
+                                $price = $item?->harga_beli ?? 0;
                                 $isSupplier = $get('../../type') === 'supplier';
+                                
+                                if ($isSupplier) {
+                                    $supplierId = $get('../../supplier_id');
+                                    if ($item && $supplierId) {
+                                        $pivot = $item->suppliers()->where('suppliers.id', $supplierId)->first()?->pivot;
+                                        if ($pivot && $pivot->harga_beli) {
+                                            $price = $pivot->harga_beli;
+                                        }
+                                    }
+                                }
+                                
+                                $set('price', $price);
+                                $qty = $parse($get('quantity') ?: 0);
                                 $set('stock_after', ($item?->current_stock ?? 0) + ($isSupplier ? -$qty : $qty));
-                                $set('subtotal', $qty * $parse($get('price') ?: 0));
+                                $set('subtotal', $qty * $price);
                                 $updateTotal($get, $set);
                             } else {
                                 $set('current_stock', null);
