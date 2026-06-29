@@ -14,25 +14,23 @@ class StockOpnameForm
 { 
     public static function configure(Schema $schema): Schema 
     { 
-        $isRequired = fn ($livewire) => !property_exists($livewire, 'submitMode') || $livewire->submitMode === 'completed';
-
         return $schema->components([ 
             TextInput::make('code')
                 ->label('Kode Sesi')
                 ->default(fn() => 'SO-'.date('Y').'-'.rand(1000, 9999))
-                ->required($isRequired)
+                ->required()
                 ->readOnly(), 
                 
             TextInput::make('session_name')
                 ->label('Nama Sesi')
-                ->required($isRequired), 
+                ->required(), 
                 
             DatePicker::make('date')
                 ->label('Tanggal')
                 ->default(now())
                 ->native(false)
                 ->displayFormat('d F Y')
-                ->required($isRequired)
+                ->required()
                 ->columnSpanFull(), 
                 
             Hidden::make('status')
@@ -55,7 +53,7 @@ class StockOpnameForm
                         ->relationship('item', 'name')
                         ->searchable()
                         ->preload()
-                        ->required($isRequired)
+                        ->required()
                         ->reactive()
                         ->afterStateUpdated(function ($state, callable $set) { 
                             $item = \App\Models\Item::find($state); 
@@ -68,12 +66,12 @@ class StockOpnameForm
                         ->label('Stok Sistem')
                         ->numeric()
                         ->readOnly()
-                        ->required($isRequired), 
+                        ->required(), 
                         
                     TextInput::make('physical_stock')
                         ->label('Stok Fisik')
                         ->numeric()
-                        ->required($isRequired)
+                        ->required()
                         ->reactive()
                         ->afterStateUpdated(function ($state, callable $get, callable $set) { 
                             if ($state !== null && $state !== '') {
@@ -96,7 +94,7 @@ class StockOpnameForm
                         ])
                         ->disabled()
                         ->dehydrated()
-                        ->required($isRequired), 
+                        ->required(), 
                         
                     TextInput::make('notes')->label('Catatan'), 
                 ])

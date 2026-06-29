@@ -28,7 +28,7 @@ class CreateStockOpname extends CreateRecord
             $this->getCreateFormAction()
                 ->label('Selesaikan'),
             Action::make('saveDraft')
-                ->label('Simpan Konsep')
+                ->label('Draft')
                 ->color('warning')
                 ->action(function () {
                     $this->submitMode = 'draft';

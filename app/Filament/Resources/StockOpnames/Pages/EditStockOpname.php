@@ -42,7 +42,7 @@ class EditStockOpname extends EditRecord
             $this->getSaveFormAction()
                 ->label('Selesaikan'),
             Action::make('saveDraft')
-                ->label('Simpan Konsep')
+                ->label('Draft')
                 ->color('warning')
                 ->action(function () {
                     $this->submitMode = 'draft';
