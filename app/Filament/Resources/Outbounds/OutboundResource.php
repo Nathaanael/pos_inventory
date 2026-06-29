@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Outbounds;
 
 use App\Filament\Resources\Outbounds\Pages\CreateOutbound;
+use App\Filament\Resources\Outbounds\Pages\CreateOutboundPos;
 use App\Filament\Resources\Outbounds\Pages\EditOutbound;
 use App\Filament\Resources\Outbounds\Pages\ListOutbounds;
 use App\Filament\Resources\Outbounds\Schemas\OutboundForm;
@@ -49,7 +50,7 @@ class OutboundResource extends Resource
     {
         return [
             'index' => ListOutbounds::route('/'),
-            'create' => CreateOutbound::route('/create'),
+            'create' => CreateOutboundPos::route('/create'),
             'edit' => EditOutbound::route('/{record}/edit'),
         ];
     }

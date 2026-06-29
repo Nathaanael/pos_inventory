@@ -117,7 +117,26 @@ class ItemForm
                                         ->label('Supplier Utama')
                                         ->default(false)
                                         ->inline(false)
-                                        ->columnSpan(1),
+                                        ->columnSpan(1)
+                                        ->live()
+                                        ->afterStateUpdated(function (\Filament\Forms\Get $get, \Filament\Forms\Set $set, $state, $statePath) {
+                                            if ($state) {
+                                                // Dapatkan state dari repeater itemSuppliers
+                                                $repeaterState = $get('../../itemSuppliers');
+                                                if (is_array($repeaterState)) {
+                                                    // $statePath format biasanya: data.itemSuppliers.uuid.is_primary
+                                                    // Kita ekstrak uuid-nya (elemen kedua dari belakang)
+                                                    $parts = explode('.', $statePath);
+                                                    $currentIndex = $parts[count($parts) - 2];
+                                                    
+                                                    foreach ($repeaterState as $key => $item) {
+                                                        if ($key !== $currentIndex) {
+                                                            $set("../../itemSuppliers.{$key}.is_primary", false);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }),
                                 ])
                                 ->columns(2)
                                 ->columnSpanFull()

@@ -55,6 +55,29 @@ class OutboundItem extends Model
                 $item->current_stock -= $model->quantity;
                 $item->save();
 
+                // ---------------------------------------------------------
+                // FIFO Supplier Balancing
+                // ---------------------------------------------------------
+                $remainingQty = (int) $model->quantity;
+                
+                // Ambil semua stok supplier yang masih ada, urutkan dari data paling lama (FIFO berdasar ID)
+                $supplierStocks = \App\Models\ItemSupplier::where('item_id', $item->id)
+                    ->where('current_stock', '>', 0)
+                    ->orderBy('id', 'asc')
+                    ->lockForUpdate()
+                    ->get();
+
+                foreach ($supplierStocks as $supplierStock) {
+                    if ($remainingQty <= 0) break;
+
+                    $deduct = min($remainingQty, $supplierStock->current_stock);
+                    $supplierStock->current_stock -= $deduct;
+                    $supplierStock->save();
+
+                    $remainingQty -= $deduct;
+                }
+                // ---------------------------------------------------------
+
                 \App\Models\StockMovement::create([
                     'item_id' => $item->id,
                     'type' => MovementType::OUTBOUND->value,
