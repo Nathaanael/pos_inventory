@@ -116,22 +116,33 @@
             <td>{{ $returnTransaction->date->format('d/m/Y') }}</td>
         </tr>
         <tr>
-            <td class="label">Pemasok</td>
+            <td class="label">Tipe Retur</td>
             <td class="colon">:</td>
-            <td>{{ $returnTransaction->supplier?->name ?? '-' }}</td>
+            <td><strong>{{ $returnTransaction->type === 'supplier' ? 'Retur ke Supplier' : 'Retur dari Customer' }}</strong></td>
             
             <td class="label">Status</td>
             <td class="colon">:</td>
             <td>{{ strtoupper($returnTransaction->status->value ?? 'DRAFT') }}</td>
         </tr>
         <tr>
+            <td class="label">{{ $returnTransaction->type === 'supplier' ? 'Pemasok' : 'Pelanggan' }}</td>
+            <td class="colon">:</td>
+            <td>
+                @if($returnTransaction->type === 'supplier')
+                    {{ $returnTransaction->supplier?->name ?? '-' }}
+                @else
+                    {{ $returnTransaction->customer_name ?? '-' }}
+                @endif
+            </td>
+            
             <td class="label">Petugas</td>
             <td class="colon">:</td>
             <td>{{ $returnTransaction->createdBy?->name ?? '-' }}</td>
-            
-            <td class="label">Keterangan</td>
+        </tr>
+        <tr>
+            <td class="label">Alasan Retur</td>
             <td class="colon">:</td>
-            <td>{{ $returnTransaction->notes ?: '-' }}</td>
+            <td colspan="4">{{ $returnTransaction->reason ?: '-' }}</td>
         </tr>
     </table>
 
@@ -143,7 +154,7 @@
                 <th width="15%" class="text-center">Kuantitas</th>
                 <th width="15%" class="text-center">Harga</th>
                 <th width="15%" class="text-center">Subtotal</th>
-                <th width="15%">Keterangan</th>
+                <th width="15%">Kondisi</th>
             </tr>
         </thead>
         <tbody>
@@ -154,7 +165,7 @@
                 <td class="text-center">{{ number_format($item->quantity) }} {{ $item->item?->unit?->name }}</td>
                 <td class="text-right">Rp {{ number_format($item->price, 0, ',', '.') }}</td>
                 <td class="text-right">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
-                <td>{{ $item->notes }}</td>
+                <td>{{ ucfirst($item->condition) }}</td>
             </tr>
             @endforeach
         </tbody>
