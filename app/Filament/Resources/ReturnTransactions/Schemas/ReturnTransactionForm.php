@@ -58,9 +58,13 @@ class ReturnTransactionForm
                         $isSupplier = $state === 'supplier';
                         
                         foreach ($items as $key => $itemData) {
-                            $current = $itemData['current_stock'] ?? 0;
+                            $current = $itemData['raw_current_stock'] ?? 0;
+                            $supplierCurrent = $itemData['raw_supplier_stock'] ?? 0;
                             $qty = $parse($itemData['quantity'] ?? 0);
-                            $items[$key]['stock_after'] = $current + ($isSupplier ? -$qty : $qty);
+                            
+                            $overallAfter = $current + ($isSupplier ? -$qty : $qty);
+                            $supplierAfter = $supplierCurrent + ($isSupplier ? -$qty : $qty);
+                            $items[$key]['stock_after'] = "{$overallAfter} (Supplier: {$supplierAfter})";
                         }
                         $set('items', $items);
                         
@@ -72,11 +76,10 @@ class ReturnTransactionForm
                 }),
 
             Select::make('supplier_id')
-                ->label('Supplier')
+                ->label(fn ($get) => $get('type') === 'supplier' ? 'Supplier (Tujuan Retur)' : 'Alokasi Stok ke Supplier')
                 ->relationship('supplier', 'name')
                 ->live()
-                ->required(fn ($get) => $get('type') === 'supplier')
-                ->visible(fn ($get) => $get('type') === 'supplier'),
+                ->required(),
 
             TextInput::make('customer_name')
                 ->label('Nama Pelanggan')
@@ -140,27 +143,40 @@ class ReturnTransactionForm
                         ->afterStateUpdated(function ($state, $set, $get) use ($updateTotal, $parse) {
                             if ($state) {
                                 $item = \App\Models\Item::find($state);
-                                $set('current_stock', $item?->current_stock ?? 0);
+                                
+                                $overallStock = $item?->current_stock ?? 0;
+                                $supplierStock = 0;
                                 
                                 $price = $item?->harga_beli ?? 0;
                                 $isSupplier = $get('../../type') === 'supplier';
                                 
-                                if ($isSupplier) {
-                                    $supplierId = $get('../../supplier_id');
-                                    if ($item && $supplierId) {
-                                        $pivot = $item->suppliers()->where('suppliers.id', $supplierId)->first()?->pivot;
-                                        if ($pivot && $pivot->harga_beli) {
+                                $supplierId = $get('../../supplier_id');
+                                if ($item && $supplierId) {
+                                    $pivot = $item->suppliers()->where('suppliers.id', $supplierId)->first()?->pivot;
+                                    if ($pivot) {
+                                        if ($pivot->harga_beli && $isSupplier) {
                                             $price = $pivot->harga_beli;
                                         }
+                                        $supplierStock = $pivot->current_stock;
                                     }
                                 }
                                 
+                                $set('raw_current_stock', $overallStock);
+                                $set('raw_supplier_stock', $supplierStock);
+                                $set('current_stock', "{$overallStock} (Supplier: {$supplierStock})");
+                                
                                 $set('price', $price);
+                                
                                 $qty = $parse($get('quantity') ?: 0);
-                                $set('stock_after', ($item?->current_stock ?? 0) + ($isSupplier ? -$qty : $qty));
+                                $overallAfter = $overallStock + ($isSupplier ? -$qty : $qty);
+                                $supplierAfter = $supplierStock + ($isSupplier ? -$qty : $qty);
+                                $set('stock_after', "{$overallAfter} (Supplier: {$supplierAfter})");
+                                
                                 $set('subtotal', $qty * $price);
                                 $updateTotal($get, $set);
                             } else {
+                                $set('raw_current_stock', null);
+                                $set('raw_supplier_stock', null);
                                 $set('current_stock', null);
                                 $set('stock_after', null);
                                 $set('price', null);
@@ -171,9 +187,11 @@ class ReturnTransactionForm
                         ->required()
                         ->columnSpan(2),
 
+                    Hidden::make('raw_current_stock')->dehydrated(false),
+                    Hidden::make('raw_supplier_stock')->dehydrated(false),
+
                     TextInput::make('current_stock')
                         ->label('Stok')
-                        ->numeric()
                         ->disabled()
                         ->dehydrated(false),
 
@@ -183,10 +201,17 @@ class ReturnTransactionForm
                         ->live(onBlur: true)
                         ->afterStateUpdated(function ($state, $get, $set, \Filament\Forms\Components\TextInput $component, $livewire) use ($updateTotal, $parse) {
                             $livewire->resetValidation($component->getStatePath());
-                            $current = $get('current_stock') ?? 0;
+                            
+                            $current = $get('raw_current_stock') ?? 0;
+                            $supplierCurrent = $get('raw_supplier_stock') ?? 0;
+                            
                             $qty = $parse($state);
                             $isSupplier = $get('../../type') === 'supplier';
-                            $set('stock_after', $current + ($isSupplier ? -$qty : $qty));
+                            
+                            $overallAfter = $current + ($isSupplier ? -$qty : $qty);
+                            $supplierAfter = $supplierCurrent + ($isSupplier ? -$qty : $qty);
+                            $set('stock_after', "{$overallAfter} (Supplier: {$supplierAfter})");
+                            
                             $set('subtotal', $qty * $parse($get('price') ?: 0));
                             $updateTotal($get, $set);
                             
@@ -195,13 +220,23 @@ class ReturnTransactionForm
                                     $component->getStatePath() => "Stok tidak cukup. Tersedia: {$current}",
                                 ]);
                             }
+                            if ($isSupplier && $qty > $supplierCurrent) {
+                                throw \Illuminate\Validation\ValidationException::withMessages([
+                                    $component->getStatePath() => "Stok dari supplier ini tidak cukup. Tersedia: {$supplierCurrent}",
+                                ]);
+                            }
                         })
                         ->rules([
                             fn ($get) => function (string $attribute, $value, \Closure $fail) use ($get) {
                                 if ($get('../../type') === 'supplier') {
-                                    $current = $get('current_stock') ?? 0;
+                                    $current = $get('raw_current_stock') ?? 0;
+                                    $supplierCurrent = $get('raw_supplier_stock') ?? 0;
+                                    
                                     if ($value > $current) {
                                         $fail("Stok tidak cukup. Tersedia: {$current}");
+                                    }
+                                    if ($value > $supplierCurrent) {
+                                        $fail("Stok dari supplier ini tidak cukup. Tersedia: {$supplierCurrent}");
                                     }
                                 }
                             }
@@ -231,7 +266,6 @@ class ReturnTransactionForm
 
                     TextInput::make('stock_after')
                         ->label('Sisa Stok')
-                        ->numeric()
                         ->disabled()
                         ->dehydrated(false),
 

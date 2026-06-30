@@ -115,7 +115,28 @@ class ReturnTransactionsTable
 
                                 $isSupplierReturn = ($record->type === 'supplier' || empty($record->type));
 
+                                $supplierId = $record->supplier_id;
+                                $itemSupplier = null;
+                                
+                                if ($supplierId) {
+                                    $itemSupplier = \App\Models\ItemSupplier::firstOrCreate(
+                                        ['item_id' => $item->id, 'supplier_id' => $supplierId],
+                                        ['harga_beli' => $model->price ?? $item->harga_beli, 'current_stock' => 0]
+                                    );
+                                }
+
                                 if ($isSupplierReturn) {
+                                    if ($item->current_stock < $model->quantity) {
+                                        throw \Illuminate\Validation\ValidationException::withMessages([
+                                            'approve' => "Stok {$item->name} tidak cukup. Tersedia: {$item->current_stock}",
+                                        ]);
+                                    }
+                                    if ($itemSupplier && $itemSupplier->current_stock < $model->quantity) {
+                                        throw \Illuminate\Validation\ValidationException::withMessages([
+                                            'approve' => "Stok {$item->name} dari supplier ini tidak cukup. Tersedia: {$itemSupplier->current_stock}",
+                                        ]);
+                                    }
+
                                     $qty = -$model->quantity;
                                     $movementType = \App\Enums\MovementType::RETURN_OUT->value;
                                     $notes = 'Retur ke Supplier (Approved)';
@@ -127,6 +148,11 @@ class ReturnTransactionsTable
 
                                 $item->current_stock += $qty;
                                 $item->save();
+                                
+                                if ($itemSupplier) {
+                                    $itemSupplier->current_stock += $qty;
+                                    $itemSupplier->save();
+                                }
 
                                 \App\Models\StockMovement::create([
                                     'item_id' => $item->id,
@@ -194,7 +220,28 @@ class ReturnTransactionsTable
 
                                         $isSupplierReturn = ($record->type === 'supplier' || empty($record->type));
 
+                                        $supplierId = $record->supplier_id;
+                                        $itemSupplier = null;
+                                        
+                                        if ($supplierId) {
+                                            $itemSupplier = \App\Models\ItemSupplier::firstOrCreate(
+                                                ['item_id' => $item->id, 'supplier_id' => $supplierId],
+                                                ['harga_beli' => $model->price ?? $item->harga_beli, 'current_stock' => 0]
+                                            );
+                                        }
+
                                         if ($isSupplierReturn) {
+                                            if ($item->current_stock < $model->quantity) {
+                                                throw \Illuminate\Validation\ValidationException::withMessages([
+                                                    'bulk_approve' => "Stok {$item->name} tidak cukup. Tersedia: {$item->current_stock}",
+                                                ]);
+                                            }
+                                            if ($itemSupplier && $itemSupplier->current_stock < $model->quantity) {
+                                                throw \Illuminate\Validation\ValidationException::withMessages([
+                                                    'bulk_approve' => "Stok {$item->name} dari supplier ini tidak cukup. Tersedia: {$itemSupplier->current_stock}",
+                                                ]);
+                                            }
+
                                             $qty = -$model->quantity;
                                             $movementType = \App\Enums\MovementType::RETURN_OUT->value;
                                             $notes = 'Retur ke Supplier (Approved)';
@@ -206,6 +253,11 @@ class ReturnTransactionsTable
 
                                         $item->current_stock += $qty;
                                         $item->save();
+                                        
+                                        if ($itemSupplier) {
+                                            $itemSupplier->current_stock += $qty;
+                                            $itemSupplier->save();
+                                        }
 
                                         \App\Models\StockMovement::create([
                                             'item_id' => $item->id,
