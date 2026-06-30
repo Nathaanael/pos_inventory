@@ -70,7 +70,9 @@ class ItemViewForm
                                 ->label('Deskripsi'),
                             FileUpload::make('image')
                                 ->label('Gambar')
-                                ->image(),
+                                ->image()
+                                ->disk('public')
+                                ->directory('items'),
                         ]),
                 ]),
             ]),

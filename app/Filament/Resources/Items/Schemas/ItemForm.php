@@ -131,7 +131,9 @@ class ItemForm
                                 ->required(),
                             FileUpload::make('image')
                                 ->label('Gambar')
-                                ->image(),
+                                ->image()
+                                ->disk('public')
+                                ->directory('items'),
                         ]),
 
                     Section::make('Klasifikasi')

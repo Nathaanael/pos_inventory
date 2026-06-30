@@ -20,6 +20,7 @@ class BrandForm
                 FileUpload::make('logo')
                     ->label('Logo')
                     ->image()
+                    ->disk('public')
                     ->directory('brands'),
                 Textarea::make('description')
                     ->label('Deskripsi')
