@@ -33,7 +33,6 @@ class ExportData extends Page
     public ?string $export_type = null;
     public ?string $start_date = null;
     public ?string $end_date = null;
-    public ?string $preset_period = null;
 
     // Pagination state
     public int $perPage = 5;
@@ -41,8 +40,6 @@ class ExportData extends Page
 
     public function mount(): void
     {
-        $this->preset_period = '30';
-        $this->applyPreset('30');
     }
 
     public function form(Schema $schema): Schema
@@ -66,28 +63,8 @@ class ExportData extends Page
                             ])
                             ->native(false)
                             ->searchable()
-                            ->required(),
-
-                        Select::make('preset_period')
-                            ->label('Periode Cepat')
-                            ->options([
-                                'today' => 'Hari Ini',
-                                '7' => '7 Hari Terakhir',
-                                '30' => '30 Hari Terakhir',
-                                'month' => 'Bulan Ini',
-                                'year' => 'Tahun Ini',
-                                'custom' => 'Pilih Manual...',
-                            ])
-                            ->default('30')
-                            ->native(false)
-                            ->live()
-                            ->afterStateUpdated(function (?string $state, callable $set) {
-                                if ($state && $state !== 'custom') {
-                                    $this->applyPreset($state);
-                                    $set('start_date', $this->start_date);
-                                    $set('end_date', $this->end_date);
-                                }
-                            }),
+                            ->required()
+                            ->columnSpanFull(),
 
                         DatePicker::make('start_date')
                             ->label('Tanggal Mulai')
@@ -95,7 +72,6 @@ class ExportData extends Page
                             ->native(false)
                             ->displayFormat('d/m/Y')
                             ->maxDate(now())
-                            ->disabled(fn (callable $get) => $get('preset_period') !== 'custom')
                             ->dehydrated(),
 
                         DatePicker::make('end_date')
@@ -104,26 +80,12 @@ class ExportData extends Page
                             ->native(false)
                             ->displayFormat('d/m/Y')
                             ->maxDate(now())
-                            ->disabled(fn (callable $get) => $get('preset_period') !== 'custom')
                             ->dehydrated(),
                     ])
                     ->columns(2),
             ]);
     }
 
-    protected function applyPreset(string $preset): void
-    {
-        $this->end_date = now()->format('Y-m-d');
-
-        $this->start_date = match ($preset) {
-            'today' => now()->format('Y-m-d'),
-            '7' => now()->subDays(6)->format('Y-m-d'),
-            '30' => now()->subDays(29)->format('Y-m-d'),
-            'month' => now()->startOfMonth()->format('Y-m-d'),
-            'year' => now()->startOfYear()->format('Y-m-d'),
-            default => now()->subDays(29)->format('Y-m-d'),
-        };
-    }
 
     public function processExport(): void
     {

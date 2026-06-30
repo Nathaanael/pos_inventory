@@ -100,9 +100,9 @@ class OutboundsTable
                         }
                     })
                     ->visible(fn ($record) => $record->status->value === 'selesai'),
-                EditAction::make()
-                    ->label('Ubah')
-                    ->visible(fn ($record) => $record->status->value === 'pending'),
+                // EditAction::make()
+                //     ->label('Ubah')
+                //     ->visible(fn ($record) => $record->status->value === 'pending'),
                 Action::make('approve')
                     ->label('Setujui')
                     ->icon('heroicon-o-check-circle')
@@ -175,28 +175,10 @@ class OutboundsTable
                                 'voided_by' => auth()->id(),
                                 'void_reason' => $data['void_reason'],
                             ]);
-                            foreach ($record->items as $itemModel) {
-                                $item = \App\Models\Item::lockForUpdate()->find($itemModel->item_id);
-                                $stockBefore = $item->current_stock;
-                                $item->current_stock += $itemModel->quantity;
-                                $item->save();
-                                \App\Models\StockMovement::create([
-                                    'item_id' => $item->id,
-                                    'type' => \App\Enums\MovementType::VOID->value,
-                                    'reference_id' => $record->id,
-                                    'reference_type' => 'outbounds',
-                                    'quantity' => $itemModel->quantity,
-                                    'stock_before' => $stockBefore,
-                                    'stock_after' => $item->current_stock,
-                                    'price' => $itemModel->sell_price,
-                                    'notes' => 'Batal Barang Keluar: ' . $data['void_reason'],
-                                    'created_by' => auth()->id() ?? 1
-                                ]);
-                            }
                         });
                         \Filament\Notifications\Notification::make()->title('Transaksi Berhasil Dibatalkan')->success()->send();
                     })
-                    ->visible(fn ($record) => in_array($record->status->value, ['selesai', 'diterima']) && !$record->voided_at),
+                    ->visible(fn ($record) => $record->status->value === 'pending'),
             ])
             ->bulkActions([
                 \Filament\Actions\BulkActionGroup::make([

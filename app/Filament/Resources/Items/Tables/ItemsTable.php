@@ -35,10 +35,21 @@ class ItemsTable
                 TextColumn::make('name')
                     ->label('Nama')
                     ->searchable(),
-                TextColumn::make('suppliers.name')
+                TextColumn::make('supplier_list')
                     ->label('Supplier')
                     ->badge()
-                    ->searchable(),
+                    ->getStateUsing(function ($record) {
+                        $suppliers = $record->suppliers;
+                        if ($suppliers->isEmpty()) return null;
+                        
+                        if ($suppliers->count() > 1) {
+                            return $suppliers->first()->name . ' ... +';
+                        }
+                        return $suppliers->first()->name;
+                    })
+                    ->searchable(query: function ($query, string $search) {
+                        return $query->whereHas('suppliers', fn ($q) => $q->where('name', 'like', "%{$search}%"));
+                    }),
                 TextColumn::make('harga_beli')
                     ->label('Harga Beli')
                     ->numeric()

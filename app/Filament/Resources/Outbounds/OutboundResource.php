@@ -51,7 +51,7 @@ class OutboundResource extends Resource
         return [
             'index' => ListOutbounds::route('/'),
             'create' => CreateOutboundPos::route('/create'),
-            'edit' => EditOutbound::route('/{record}/edit'),
+            // 'edit' => EditOutbound::route('/{record}/edit'),
         ];
     }
 }
