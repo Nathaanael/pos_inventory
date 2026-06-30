@@ -123,15 +123,14 @@
             background: #ffffff;
             border: 1px solid #e5e7eb;
             border-radius: 0.75rem;
-            padding: 3.5rem 1rem 1rem 1rem;
+            padding: 0;
             cursor: pointer;
             transition: all 0.2s ease;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
+            justify-content: flex-start;
             min-height: 8.5rem;
-            gap: 0.25rem;
         }
         .pos-product-card::before {
             content: '';
@@ -153,12 +152,24 @@
             cursor: not-allowed;
         }
 
+        .pos-product-img-wrapper {
+            height: 120px;
+            width: 100%;
+            background: #f9fafb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .dark .pos-product-img-wrapper {
+            background: rgba(0,0,0,0.2);
+            border-bottom-color: rgba(255,255,255,0.05);
+        }
+
         .dark .pos-product-card {
             background: rgba(255,255,255,0.03);
             border-color: rgba(255,255,255,0.08);
         }
-
-
 
 
         .pos-product-name {
@@ -666,11 +677,15 @@
                             x-on:click="$el.classList.add('just-added'); setTimeout(() => $el.classList.remove('just-added'), 500)"
                         @endif
                     >
-                        {{-- Icon --}}
-                        <div style="position: absolute; top: 0.75rem; left: 0.75rem; width: 2.25rem; height: 2.25rem; background: #ffedd5; color: #d97706; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-                            </svg>
+                        {{-- Image/Placeholder --}}
+                        <div class="pos-product-img-wrapper">
+                            @if($item->image)
+                                <img src="{{ Storage::url($item->image) }}" alt="{{ $item->name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                            @else
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#d1d5db" style="width: 3.5rem; height: 3.5rem;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+                                </svg>
+                            @endif
                         </div>
 
                         {{-- Stock Badge --}}
@@ -679,9 +694,11 @@
                         </span>
 
                         {{-- Info --}}
-                        <div class="pos-product-name">{{ $item->name }}</div>
-                        <div class="pos-product-code">{{ $item->code }}</div>
-                        <div class="pos-product-price">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
+                        <div style="padding: 0.75rem; display: flex; flex-direction: column; gap: 0.25rem;">
+                            <div class="pos-product-name">{{ $item->name }}</div>
+                            <div class="pos-product-code">{{ $item->code }}</div>
+                            <div class="pos-product-price">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
+                        </div>
                     </div>
                 @empty
                     <div class="pos-empty-grid">
