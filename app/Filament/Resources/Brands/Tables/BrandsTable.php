@@ -22,7 +22,8 @@ class BrandsTable
                     ->label('Nama')
                     ->searchable(),
                 ImageColumn::make('logo')
-                    ->label('Logo'),
+                    ->label('Logo')
+                    ->disk('public'),
                 IconColumn::make('is_active')
                     ->label('Aktif')
                     ->boolean(),
