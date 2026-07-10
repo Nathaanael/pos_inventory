@@ -147,8 +147,8 @@ class ReturnTransactionForm
                                 $overallStock = $item?->current_stock ?? 0;
                                 $supplierStock = 0;
                                 
-                                $price = $item?->harga_beli ?? 0;
                                 $isSupplier = $get('../../type') === 'supplier';
+                                $price = $isSupplier ? ($item?->harga_beli ?? 0) : ($item?->harga_jual_retail ?? 0);
                                 
                                 $supplierId = $get('../../supplier_id');
                                 if ($item && $supplierId) {
