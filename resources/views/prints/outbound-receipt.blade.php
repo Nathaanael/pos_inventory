@@ -173,7 +173,12 @@
 
 <div class="receipt">
     {{-- HEADER --}}
-    <div class="center bold" style="font-size:14px; color:#000 !important;">WAHYU JAYA ELECTRIC</div>
+    @php($store = \App\Models\StoreSetting::current())
+    <div class="center bold" style="font-size:14px; color:#000 !important;">{{ strtoupper($store->store_name) }}</div>
+    @if($store->tagline)<div class="center">{{ $store->tagline }}</div>@endif
+    @if($store->address)<div class="center">{{ $store->address }}</div>@endif
+    @if($store->phone)<div class="center">Telp: {{ $store->phone }}</div>@endif
+    @if($store->tax_number)<div class="center">NPWP: {{ $store->tax_number }}</div>@endif
     <div class="dash">--------------------------------</div>
 
     {{-- TRANSACTION INFO --}}
@@ -215,7 +220,7 @@
         </tr>
         <tr>
             <td>Qty</td>
-            <td class="right">{{ number_format($outbound->items->sum('quantity')) }} pcs</td>
+            <td class="right">{{ number_format($outbound->items->sum('quantity')) }}</td>
         </tr>
         <tr class="grand">
             <td>TOTAL</td>
@@ -227,7 +232,7 @@
 
     {{-- FOOTER --}}
     <div class="footer">
-        <div class="thanks">Terima Kasih</div>
+        @if($store->receipt_footer)<div class="thanks">{{ $store->receipt_footer }}</div>@endif
         <div>{{ now()->format('d/m/Y H:i') }}</div>
     </div>
 

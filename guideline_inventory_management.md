@@ -1,5 +1,5 @@
 # 📋 Guideline Penyempurnaan Inventory Management System
-## Wahyu Jaya Electronic — Standar Industri Retail Elektronik
+## Standar Industri Retail
 
 > Dokumen ini disusun dari perspektif **pemilik toko elektronik** yang sudah puluhan tahun beroperasi manual (buku besar, nota karbon, hafalan stok) dan sekarang ingin semua tercatat rapi di sistem digital. Setiap poin berasal dari **pain point nyata** yang dialami sehari-hari.
 
@@ -701,7 +701,7 @@ static::created(function ($model) {
 Buat custom view yang menampilkan data seperti invoice/nota:
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  WAHYU JAYA ELECTRONIC                                       │
+│  NAMA TOKO (dari Pengaturan Toko)                            │
 │  Jl. xxxxxxx                                                 │
 ├─────────────────────────────────────────────────────────────┤
 │  NOTA BARANG MASUK                                           │
@@ -714,7 +714,7 @@ Buat custom view yang menampilkan data seperti invoice/nota:
 │   2 │ ITM-45 │ Saklar Panasonic     │  50 │  35.000  │ 1.75jt│
 ├─────────────────────────────────────────────────────────────┤
 │  TOTAL: Rp 4.250.000                                        │
-│  Dicatat oleh: Admin         Diterima oleh: Wahyu           │
+│  Dicatat oleh: Admin         Diterima oleh: Budi            │
 └─────────────────────────────────────────────────────────────┘
 ```
 

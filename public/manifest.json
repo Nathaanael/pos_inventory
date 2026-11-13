@@ -1,7 +1,7 @@
 {
-    "name": "Wahyu Jaya Electric - Inventory",
-    "short_name": "WJE Inventory",
-    "description": "Sistem Inventory & Stock Opname Wahyu Jaya Electric",
+    "name": "POS Inventory",
+    "short_name": "Inventory",
+    "description": "Sistem Kasir, Inventory & Stock Opname",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#1a1a2e",

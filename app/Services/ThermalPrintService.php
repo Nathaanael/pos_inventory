@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Outbound;
+use App\Models\StoreSetting;
 use Mike42\Escpos\Printer;
 use Mike42\Escpos\PrintConnectors\FilePrintConnector;
 
@@ -25,7 +26,8 @@ class ThermalPrintService
      */
     public function printOutboundReceipt(Outbound $outbound): void
     {
-        $printerName = env('THERMAL_PRINTER_NAME', 'RP58 Printer');
+        $store = StoreSetting::current();
+        $printerName = $store->printer_name ?: env('THERMAL_PRINTER_NAME', 'RP58 Printer');
 
         // Generate ESC/POS data to a temp file
         $tempFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'nota_' . $outbound->id . '_' . time() . '.bin';
@@ -34,11 +36,11 @@ class ThermalPrintService
             $connector = new FilePrintConnector($tempFile);
             $printer = new Printer($connector);
 
-            $this->printHeader($printer);
+            $this->printHeader($printer, $store);
             $this->printTransactionInfo($printer, $outbound);
             $this->printItems($printer, $outbound);
             $this->printTotals($printer, $outbound);
-            $this->printFooter($printer);
+            $this->printFooter($printer, $store);
 
             // Feed paper for tear-off (no auto-cutter on Blueprint ECO-58D)
             $printer->feed(4);
@@ -85,12 +87,24 @@ class ThermalPrintService
         }
     }
 
-    private function printHeader(Printer $printer): void
+    private function printHeader(Printer $printer, StoreSetting $store): void
     {
         $printer->setJustification(Printer::JUSTIFY_CENTER);
         $printer->setEmphasis(true);
-        $printer->text("WAHYU JAYA ELECTRIC\n");
+        $printer->text($this->wrap(mb_strtoupper($store->store_name ?: StoreSetting::DEFAULT_NAME)));
         $printer->setEmphasis(false);
+
+        foreach ([
+            $store->tagline,
+            $store->address,
+            $store->phone ? 'Telp: ' . $store->phone : null,
+            $store->tax_number ? 'NPWP: ' . $store->tax_number : null,
+        ] as $line) {
+            if (filled($line)) {
+                $printer->text($this->wrap($line));
+            }
+        }
+
         $printer->text(str_repeat('-', self::LINE_WIDTH) . "\n");
     }
 
@@ -143,7 +157,7 @@ class ThermalPrintService
         $itemCount = $outbound->items->count() . " jenis";
         $printer->text($this->twoColumns("Item", $itemCount) . "\n");
 
-        $totalQty = number_format($outbound->items->sum('quantity')) . " pcs";
+        $totalQty = number_format($outbound->items->sum('quantity'));
         $printer->text($this->twoColumns("Qty", $totalQty) . "\n");
 
         $total = "Rp" . number_format($outbound->total_amount, 0, ',', '.');
@@ -153,12 +167,16 @@ class ThermalPrintService
         $printer->text(str_repeat('-', self::LINE_WIDTH) . "\n");
     }
 
-    private function printFooter(Printer $printer): void
+    private function printFooter(Printer $printer, StoreSetting $store): void
     {
         $printer->setJustification(Printer::JUSTIFY_CENTER);
-        $printer->setEmphasis(true);
-        $printer->text("Terima Kasih\n");
-        $printer->setEmphasis(false);
+
+        if (filled($store->receipt_footer)) {
+            $printer->setEmphasis(true);
+            $printer->text($this->wrap($store->receipt_footer));
+            $printer->setEmphasis(false);
+        }
+
         $printer->text(now()->format('d/m/Y H:i') . "\n");
     }
 
@@ -176,6 +194,20 @@ class ThermalPrintService
         }
 
         return $left . str_repeat(' ', $spaces) . $right;
+    }
+
+    /**
+     * Wrap text to the printer line width (keeps long addresses readable).
+     */
+    private function wrap(string $text): string
+    {
+        $lines = [];
+
+        foreach (preg_split('/\R/', trim($text)) as $paragraph) {
+            $lines[] = wordwrap($paragraph, self::LINE_WIDTH, "\n", true);
+        }
+
+        return implode("\n", $lines) . "\n";
     }
 
     /**

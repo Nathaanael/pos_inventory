@@ -47,7 +47,9 @@ abstract class BaseExport implements WithStyles, WithEvents
         $rows = [];
 
         // Row 1: Store name
-        $rows[] = ['WAHYU JAYA ELECTRIC'];
+        // Query langsung (bukan StoreSetting::current()) karena export jalan di queue worker
+        // yang hidup lama, supaya perubahan nama toko langsung terbaca.
+        $rows[] = [strtoupper(\App\Models\StoreSetting::query()->value('store_name') ?: \App\Models\StoreSetting::DEFAULT_NAME)];
         // Row 2: Report title
         $rows[] = [$this->getTitle()];
         // Row 3: Period
