@@ -26,7 +26,19 @@ class DatabaseSeeder extends Seeder
                 'is_active' => true,
             ]
         );
-        
+
+        // Contoh akun kasir: hanya bisa membuka portal kasir (/kasir)
+        \App\Models\User::updateOrCreate(
+            ['email' => 'kasir@kasir.com'],
+            [
+                'name' => 'Kasir',
+                'role' => \App\Models\User::ROLE_KASIR,
+                'password' => bcrypt('password'),
+                'must_reset_password' => false,
+                'is_active' => true,
+            ]
+        );
+
         $this->call(DummyDataSeeder::class);
     }
 }

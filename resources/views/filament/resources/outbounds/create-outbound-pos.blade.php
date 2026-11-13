@@ -849,6 +849,7 @@
                     <span class="label">Subtotal ({{ count($cartItems) }} item)</span>
                     <span class="value">Rp {{ number_format($totalAmount, 0, ',', '.') }}</span>
                 </div>
+                @if($this->showCostInfo())
                 <div class="pos-summary-row">
                     <span class="label">Total HPP</span>
                     <span class="value">Rp {{ number_format($totalCogs, 0, ',', '.') }}</span>
@@ -859,6 +860,7 @@
                         {{ $margin > 0 ? 'Rp ' . number_format($margin, 0, ',', '.') : '-' }}
                     </span>
                 </div>
+                @endif
 
                 <div class="pos-summary-total">
                     <span class="label">Total</span>
@@ -867,7 +869,7 @@
 
                 {{-- Action Buttons --}}
                 <div class="pos-actions">
-                    <a href="{{ \App\Filament\Resources\Outbounds\OutboundResource::getUrl('index') }}" class="pos-btn pos-btn-secondary" style="text-decoration: none;">
+                    <a href="{{ $this->getPosCancelUrl() }}" class="pos-btn pos-btn-secondary" style="text-decoration: none;">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                         </svg>

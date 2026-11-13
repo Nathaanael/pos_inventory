@@ -170,8 +170,19 @@
             <div class="app-card-icon blue">
                 <x-heroicon-o-clipboard-document-check />
             </div>
-            <p class="app-card-label">Stock Opname</p>
-            <p class="app-card-sub">Manajemen barang & gudang</p>
+            <p class="app-card-label">Back Office</p>
+            <p class="app-card-sub">Manajemen barang, gudang & laporan</p>
+            <div class="app-card-arrow">
+                <span>Buka</span>
+                <x-heroicon-o-arrow-right />
+            </div>
+            </a>
+            <a href="{{ url('/kasir') }}" class="app-card">
+            <div class="app-card-icon red">
+                <x-heroicon-o-shopping-cart />
+            </div>
+            <p class="app-card-label">Kasir</p>
+            <p class="app-card-sub">Penjualan & cetak nota</p>
             <div class="app-card-arrow">
                 <span>Buka</span>
                 <x-heroicon-o-arrow-right />

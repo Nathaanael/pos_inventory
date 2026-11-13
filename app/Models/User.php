@@ -1,1 +1,72 @@
-<?php namespace App\Models; use Illuminate\Foundation\Auth\User as Authenticatable; use Illuminate\Notifications\Notifiable; use Illuminate\Database\Eloquent\Factories\HasFactory; use Filament\Models\Contracts\FilamentUser; use Filament\Panel; class User extends Authenticatable implements FilamentUser { use HasFactory, Notifiable; protected $guarded = []; protected $hidden = ['password', 'remember_token']; protected function casts(): array { return ['email_verified_at' => 'datetime', 'password' => 'hashed', 'must_reset_password' => 'boolean', 'is_active' => 'boolean']; } public function canAccessPanel(Panel $panel): bool { return true; } }
+<?php
+
+namespace App\Models;
+
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable implements FilamentUser
+{
+    use HasFactory, Notifiable;
+
+    public const ROLE_ADMIN = 'admin';
+
+    public const ROLE_KASIR = 'kasir';
+
+    public const ROLES = [
+        self::ROLE_ADMIN => 'Admin',
+        self::ROLE_KASIR => 'Kasir',
+    ];
+
+    protected $guarded = [];
+
+    protected $hidden = ['password', 'remember_token'];
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'must_reset_password' => 'boolean',
+            'is_active' => 'boolean',
+        ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === self::ROLE_ADMIN;
+    }
+
+    public function isKasir(): bool
+    {
+        return $this->role === self::ROLE_KASIR;
+    }
+
+    /**
+     * Kasir hanya boleh masuk portal kasir. Admin boleh semua panel
+     * (termasuk portal kasir, untuk membantu saat ramai/darurat).
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        if (! $this->is_active) {
+            return false;
+        }
+
+        if ($this->isKasir()) {
+            return $panel->getId() === 'kasir';
+        }
+
+        return true;
+    }
+
+    /**
+     * Halaman tujuan setelah login, sesuai role.
+     */
+    public function homeUrl(): string
+    {
+        return $this->isKasir() ? url('/kasir') : url('/');
+    }
+}
