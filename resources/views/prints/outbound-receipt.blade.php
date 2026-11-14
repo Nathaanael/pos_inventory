@@ -226,6 +226,22 @@
             <td>TOTAL</td>
             <td class="right">Rp{{ number_format($outbound->total_amount, 0, ',', '.') }}</td>
         </tr>
+        @if($outbound->payment_method)
+        <tr>
+            <td>Bayar</td>
+            <td class="right">{{ \App\Filament\Kasir\Pages\Pos::PAYMENT_METHODS[$outbound->payment_method] ?? ucfirst($outbound->payment_method) }}</td>
+        </tr>
+        @endif
+        @if($outbound->payment_method === 'tunai' && $outbound->paid_amount)
+        <tr>
+            <td>Tunai</td>
+            <td class="right">Rp{{ number_format($outbound->paid_amount, 0, ',', '.') }}</td>
+        </tr>
+        <tr>
+            <td>Kembali</td>
+            <td class="right">Rp{{ number_format($outbound->paid_amount - $outbound->total_amount, 0, ',', '.') }}</td>
+        </tr>
+        @endif
     </table>
 
     <div class="dash">--------------------------------</div>

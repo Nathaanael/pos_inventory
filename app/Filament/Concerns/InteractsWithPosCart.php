@@ -4,10 +4,8 @@ namespace App\Filament\Concerns;
 
 use App\Models\Category;
 use App\Models\Item;
-use App\Models\Outbound;
-use App\Models\OutboundItem;
+use App\Services\StockService;
 use Filament\Notifications\Notification;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Logika keranjang POS (pilih barang, keranjang, simpan transaksi barang keluar).
@@ -236,32 +234,14 @@ trait InteractsWithPosCart
         }
 
         try {
-            DB::transaction(function () {
-                $outbound = Outbound::create([
-                    'transaction_code' => $this->transaction_code,
-                    'date' => $this->date,
-                    'customer_name' => $this->customer_name ?: null,
-                    'destination' => $this->destination ?: null,
-                    'price_type_applied' => $this->price_type_applied,
-                    'notes' => $this->notes ?: null,
-                    'status' => 'pending',
-                    'created_by' => auth()->id(),
-                    'total_amount' => $this->getTotalAmount(),
-                    'total_cogs' => $this->getTotalCogs(),
-                ]);
-
-                foreach ($this->cartItems as $cartItem) {
-                    OutboundItem::create([
-                        'outbound_id' => $outbound->id,
-                        'item_id' => $cartItem['item_id'],
-                        'quantity' => $cartItem['quantity'],
-                        'sell_price' => $cartItem['sell_price'],
-                        'cogs_price' => $cartItem['cogs_price'],
-                        'subtotal' => $cartItem['subtotal'],
-                        'profit' => ($cartItem['sell_price'] - $cartItem['cogs_price']) * $cartItem['quantity'],
-                    ]);
-                }
-            });
+            app(StockService::class)->createOutbound([
+                'transaction_code' => $this->transaction_code,
+                'date' => $this->date,
+                'customer_name' => $this->customer_name ?: null,
+                'destination' => $this->destination ?: null,
+                'price_type_applied' => $this->price_type_applied,
+                'notes' => $this->notes ?: null,
+            ], $this->cartItems);
 
             Notification::make()
                 ->title('Berhasil ditambah')

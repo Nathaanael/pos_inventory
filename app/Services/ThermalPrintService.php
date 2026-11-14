@@ -164,6 +164,16 @@ class ThermalPrintService
         $printer->text($this->twoColumns("TOTAL", $total) . "\n");
 
         $printer->setEmphasis(false);
+
+        if ($outbound->payment_method) {
+            $method = \App\Filament\Kasir\Pages\Pos::PAYMENT_METHODS[$outbound->payment_method] ?? ucfirst($outbound->payment_method);
+            $printer->text($this->twoColumns("Bayar", $method) . "\n");
+        }
+
+        if ($outbound->payment_method === 'tunai' && $outbound->paid_amount) {
+            $printer->text($this->twoColumns("Tunai", "Rp" . number_format($outbound->paid_amount, 0, ',', '.')) . "\n");
+            $printer->text($this->twoColumns("Kembali", "Rp" . number_format($outbound->paid_amount - $outbound->total_amount, 0, ',', '.')) . "\n");
+        }
         $printer->text(str_repeat('-', self::LINE_WIDTH) . "\n");
     }
 

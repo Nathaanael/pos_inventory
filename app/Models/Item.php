@@ -134,29 +134,6 @@ class Item extends Model
         return $totalCogs / $quantity;
     }
 
-    /**
-     * Deduct stock based on FIFO logic from item_supplier stocks.
-     */
-    public function deductFifoStock(int $quantity): void
-    {
-        if ($quantity <= 0) return;
-        
-        $supplierStocks = $this->itemSuppliers()
-            ->where('current_stock', '>', 0)
-            ->orderBy('id', 'asc')
-            ->lockForUpdate()
-            ->get();
-
-        $remainingQty = $quantity;
-
-        foreach ($supplierStocks as $supplierStock) {
-            if ($remainingQty <= 0) break;
-
-            $deduct = min($remainingQty, $supplierStock->current_stock);
-            $supplierStock->current_stock -= $deduct;
-            $supplierStock->save();
-
-            $remainingQty -= $deduct;
-        }
-    }
+    // Catatan: perubahan stok (termasuk potong stok FIFO per supplier)
+    // ada di App\Services\StockService, bukan di model ini.
 }

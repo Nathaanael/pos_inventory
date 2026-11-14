@@ -8,6 +8,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use App\Filament\Resources\Outbounds\Schemas\OutboundViewForm;
+use App\Services\StockService;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -113,41 +114,7 @@ class OutboundsTable
                     ->modalSubmitActionLabel('Setujui')
                     ->modalCancelActionLabel('Batal')
                     ->action(function ($record) {
-                        \Illuminate\Support\Facades\DB::transaction(function () use ($record) {
-                            $record->update([
-                                'status' => \App\Enums\TransactionStatus::COMPLETED,
-                            ]);
-
-                            foreach ($record->items as $itemModel) {
-                                $item = \App\Models\Item::lockForUpdate()->find($itemModel->item_id);
-                                $stockBefore = $item->current_stock;
-                                
-                                if ($item->current_stock < $itemModel->quantity) {
-                                    throw \Illuminate\Validation\ValidationException::withMessages([
-                                        'approve' => "Stok {$item->name} tidak cukup untuk di-approve. Tersedia: {$item->current_stock}",
-                                    ]);
-                                }
-
-                                $item->current_stock -= $itemModel->quantity;
-                                $item->save();
-                                
-                                // FIFO Supplier Balancing
-                                $item->deductFifoStock($itemModel->quantity);
-
-                                \App\Models\StockMovement::create([
-                                    'item_id'        => $item->id,
-                                    'type'           => \App\Enums\MovementType::OUTBOUND->value,
-                                    'reference_id'   => $record->id,
-                                    'reference_type' => 'outbounds',
-                                    'quantity'       => -$itemModel->quantity,
-                                    'stock_before'   => $stockBefore,
-                                    'stock_after'    => $item->current_stock,
-                                    'price'          => $itemModel->sell_price,
-                                    'notes'          => 'Barang Keluar (Approved)',
-                                    'created_by'     => auth()->id() ?? 1,
-                                ]);
-                            }
-                        });
+                        app(StockService::class)->approveOutbound($record);
 
                         \Filament\Notifications\Notification::make()
                             ->title('Transaksi Berhasil Disetujui')
@@ -168,14 +135,7 @@ class OutboundsTable
                         \Filament\Forms\Components\Textarea::make('void_reason')->required()->label('Alasan Pembatalan')
                     ])
                     ->action(function ($record, array $data) {
-                        \Illuminate\Support\Facades\DB::transaction(function () use ($record, $data) {
-                            $record->update([
-                                'status' => \App\Enums\TransactionStatus::VOIDED,
-                                'voided_at' => now(),
-                                'voided_by' => auth()->id(),
-                                'void_reason' => $data['void_reason'],
-                            ]);
-                        });
+                        app(StockService::class)->voidOutbound($record, $data['void_reason']);
                         \Filament\Notifications\Notification::make()->title('Transaksi Berhasil Dibatalkan')->success()->send();
                     })
                     ->visible(fn ($record) => $record->status->value === 'pending'),
@@ -203,44 +163,7 @@ class OutboundsTable
                             foreach ($records as $record) {
                                 if ($record->status->value !== 'pending') continue;
 
-                                \Illuminate\Support\Facades\DB::transaction(function () use ($record) {
-                                    // Lock items first to check stock
-                                    foreach ($record->items as $itemModel) {
-                                        $item = \App\Models\Item::lockForUpdate()->find($itemModel->item_id);
-                                        if ($item->current_stock < $itemModel->quantity) {
-                                            throw \Illuminate\Validation\ValidationException::withMessages([
-                                                'approve' => "Stok {$item->name} tidak cukup untuk di-approve. Tersedia: {$item->current_stock}",
-                                            ]);
-                                        }
-                                    }
-
-                                    $record->update([
-                                        'status' => \App\Enums\TransactionStatus::COMPLETED,
-                                    ]);
-
-                                    foreach ($record->items as $itemModel) {
-                                        $item = \App\Models\Item::lockForUpdate()->find($itemModel->item_id);
-                                        $stockBefore = $item->current_stock;
-                                        $item->current_stock -= $itemModel->quantity;
-                                        $item->save();
-
-                                        // FIFO Supplier Balancing
-                                        $item->deductFifoStock($itemModel->quantity);
-
-                                        \App\Models\StockMovement::create([
-                                            'item_id'        => $item->id,
-                                            'type'           => \App\Enums\MovementType::OUTBOUND->value,
-                                            'reference_id'   => $record->id,
-                                            'reference_type' => 'outbounds',
-                                            'quantity'       => -$itemModel->quantity,
-                                            'stock_before'   => $stockBefore,
-                                            'stock_after'    => $item->current_stock,
-                                            'price'          => $itemModel->sell_price,
-                                            'notes'          => 'Barang Keluar (Setujui Massal)',
-                                            'created_by'     => auth()->id() ?? 1,
-                                        ]);
-                                    }
-                                });
+                                app(StockService::class)->approveOutbound($record, 'Barang Keluar (Setujui Massal)');
                                 $count++;
                             }
                             

@@ -2,12 +2,9 @@
 
 namespace App\Filament\Resources\Inbounds\Tables;
 
-use App\Enums\MovementType;
-use App\Enums\TransactionStatus;
 use App\Filament\Resources\Inbounds\Schemas\InboundViewForm;
 use App\Models\Inbound;
-use App\Models\Item;
-use App\Models\StockMovement;
+use App\Services\StockService;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -15,7 +12,6 @@ use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\DB;
 
 class InboundsTable
 {
@@ -91,39 +87,7 @@ class InboundsTable
                     ->modalSubmitActionLabel('Setujui')
                     ->modalCancelActionLabel('Batal')
                     ->action(function (Inbound $record) {
-                        DB::transaction(function () use ($record) {
-                            $record->update([
-                                'status' => TransactionStatus::RECEIVED,
-                            ]);
-
-                            foreach ($record->items as $itemModel) {
-                                $item = Item::lockForUpdate()->find($itemModel->item_id);
-                                $stockBefore = $item->current_stock;
-                                $item->current_stock += $itemModel->quantity;
-                                $item->save();
-
-                                // Update per-supplier stock
-                                $supplierId = $record->supplier_id;
-                                if ($supplierId) {
-                                    \App\Models\ItemSupplier::where('item_id', $item->id)
-                                        ->where('supplier_id', $supplierId)
-                                        ->increment('current_stock', $itemModel->quantity);
-                                }
-
-                                StockMovement::create([
-                                    'item_id'        => $item->id,
-                                    'type'           => MovementType::INBOUND->value,
-                                    'reference_id'   => $record->id,
-                                    'reference_type' => 'inbounds',
-                                    'quantity'       => $itemModel->quantity,
-                                    'stock_before'   => $stockBefore,
-                                    'stock_after'    => $item->current_stock,
-                                    'price'          => $itemModel->buy_price,
-                                    'notes'          => 'Barang Masuk (Approved)',
-                                    'created_by'     => auth()->id() ?? 1,
-                                ]);
-                            }
-                        });
+                        app(StockService::class)->approveInbound($record);
 
                         Notification::make()
                             ->title('Transaksi Berhasil Disetujui')
@@ -146,42 +110,7 @@ class InboundsTable
                             ->label('Alasan Pembatalan'),
                     ])
                     ->action(function (Inbound $record, array $data) {
-                        DB::transaction(function () use ($record, $data) {
-                            $record->update([
-                                'status'      => TransactionStatus::VOIDED,
-                                'voided_at'   => now(),
-                                'voided_by'   => auth()->id(),
-                                'void_reason' => $data['void_reason'],
-                            ]);
-
-                            foreach ($record->items as $itemModel) {
-                                $item = Item::lockForUpdate()->find($itemModel->item_id);
-                                $stockBefore = $item->current_stock;
-                                $item->current_stock -= $itemModel->quantity;
-                                $item->save();
-
-                                // Revert per-supplier stock
-                                $supplierId = $record->supplier_id;
-                                if ($supplierId) {
-                                    \App\Models\ItemSupplier::where('item_id', $item->id)
-                                        ->where('supplier_id', $supplierId)
-                                        ->decrement('current_stock', $itemModel->quantity);
-                                }
-
-                                StockMovement::create([
-                                    'item_id'        => $item->id,
-                                    'type'           => MovementType::VOID->value,
-                                    'reference_id'   => $record->id,
-                                    'reference_type' => 'inbounds',
-                                    'quantity'       => -$itemModel->quantity,
-                                    'stock_before'   => $stockBefore,
-                                    'stock_after'    => $item->current_stock,
-                                    'price'          => $itemModel->buy_price,
-                                    'notes'          => 'Batal Barang Masuk: ' . $data['void_reason'],
-                                    'created_by'     => auth()->id() ?? 1,
-                                ]);
-                            }
-                        });
+                        app(StockService::class)->voidInbound($record, $data['void_reason']);
 
                         Notification::make()
                             ->title('Transaksi Berhasil Dibatalkan')
@@ -213,39 +142,7 @@ class InboundsTable
                             foreach ($records as $record) {
                                 if ($record->status->value !== 'pending') continue;
 
-                                \Illuminate\Support\Facades\DB::transaction(function () use ($record) {
-                                    $record->update([
-                                        'status' => \App\Enums\TransactionStatus::RECEIVED,
-                                    ]);
-
-                                    foreach ($record->items as $itemModel) {
-                                        $item = \App\Models\Item::lockForUpdate()->find($itemModel->item_id);
-                                        $stockBefore = $item->current_stock;
-                                        $item->current_stock += $itemModel->quantity;
-                                        $item->save();
-
-                                        // Update per-supplier stock
-                                        $supplierId = $record->supplier_id;
-                                        if ($supplierId) {
-                                            \App\Models\ItemSupplier::where('item_id', $item->id)
-                                                ->where('supplier_id', $supplierId)
-                                                ->increment('current_stock', $itemModel->quantity);
-                                        }
-
-                                        \App\Models\StockMovement::create([
-                                            'item_id'        => $item->id,
-                                            'type'           => \App\Enums\MovementType::INBOUND->value,
-                                            'reference_id'   => $record->id,
-                                            'reference_type' => 'inbounds',
-                                            'quantity'       => $itemModel->quantity,
-                                            'stock_before'   => $stockBefore,
-                                            'stock_after'    => $item->current_stock,
-                                            'price'          => $itemModel->buy_price,
-                                            'notes'          => 'Barang Masuk (Setujui Massal)',
-                                            'created_by'     => auth()->id() ?? 1,
-                                        ]);
-                                    }
-                                });
+                                app(StockService::class)->approveInbound($record, 'Barang Masuk (Setujui Massal)');
                                 $count++;
                             }
                             

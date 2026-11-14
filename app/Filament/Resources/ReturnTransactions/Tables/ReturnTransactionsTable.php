@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ReturnTransactions\Tables;
 
 use App\Filament\Resources\ReturnTransactions\Schemas\ReturnTransactionViewForm;
+use App\Services\StockService;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -106,68 +107,7 @@ class ReturnTransactionsTable
                     ->modalCancelActionLabel('Batal')
                     ->hidden(fn ($record) => ($record->status instanceof \App\Enums\TransactionStatus ? $record->status->value : $record->status) !== 'pending')
                     ->action(function ($record) {
-                        \Illuminate\Support\Facades\DB::transaction(function () use ($record) {
-                            $record->update(['status' => 'selesai']);
-
-                            foreach ($record->items as $model) {
-                                $item = \App\Models\Item::lockForUpdate()->find($model->item_id);
-                                $stockBefore = $item->current_stock;
-
-                                $isSupplierReturn = ($record->type === 'supplier' || empty($record->type));
-
-                                $supplierId = $record->supplier_id;
-                                $itemSupplier = null;
-                                
-                                if ($supplierId) {
-                                    $itemSupplier = \App\Models\ItemSupplier::firstOrCreate(
-                                        ['item_id' => $item->id, 'supplier_id' => $supplierId],
-                                        ['harga_beli' => $model->price ?? $item->harga_beli, 'current_stock' => 0]
-                                    );
-                                }
-
-                                if ($isSupplierReturn) {
-                                    if ($item->current_stock < $model->quantity) {
-                                        throw \Illuminate\Validation\ValidationException::withMessages([
-                                            'approve' => "Stok {$item->name} tidak cukup. Tersedia: {$item->current_stock}",
-                                        ]);
-                                    }
-                                    if ($itemSupplier && $itemSupplier->current_stock < $model->quantity) {
-                                        throw \Illuminate\Validation\ValidationException::withMessages([
-                                            'approve' => "Stok {$item->name} dari supplier ini tidak cukup. Tersedia: {$itemSupplier->current_stock}",
-                                        ]);
-                                    }
-
-                                    $qty = -$model->quantity;
-                                    $movementType = \App\Enums\MovementType::RETURN_OUT->value;
-                                    $notes = 'Retur ke Supplier (Approved)';
-                                } else {
-                                    $qty = $model->quantity;
-                                    $movementType = \App\Enums\MovementType::RETURN_IN->value;
-                                    $notes = 'Retur dari Customer (Approved)';
-                                }
-
-                                $item->current_stock += $qty;
-                                $item->save();
-                                
-                                if ($itemSupplier) {
-                                    $itemSupplier->current_stock += $qty;
-                                    $itemSupplier->save();
-                                }
-
-                                \App\Models\StockMovement::create([
-                                    'item_id' => $item->id,
-                                    'type' => $movementType,
-                                    'reference_id' => $record->id,
-                                    'reference_type' => 'returns',
-                                    'quantity' => $qty,
-                                    'stock_before' => $stockBefore,
-                                    'stock_after' => $item->current_stock,
-                                    'price' => $model->price ?? 0,
-                                    'notes' => $notes,
-                                    'created_by' => auth()->id() ?? 1
-                                ]);
-                            }
-                        });
+                        app(StockService::class)->approveReturn($record);
 
                         \Filament\Notifications\Notification::make()
                             ->title('Transaksi Berhasil Disetujui')
@@ -185,7 +125,7 @@ class ReturnTransactionsTable
                     ->modalCancelActionLabel('Batal')
                     ->hidden(fn ($record) => ($record->status instanceof \App\Enums\TransactionStatus ? $record->status->value : $record->status) !== 'pending')
                     ->action(function ($record) {
-                        $record->update(['status' => 'ditolak']);
+                        app(StockService::class)->rejectReturn($record);
 
                         \Filament\Notifications\Notification::make()
                             ->title('Transaksi Berhasil Ditolak')
@@ -211,67 +151,8 @@ class ReturnTransactionsTable
                             \Illuminate\Support\Facades\DB::transaction(function () use ($records) {
                                 foreach ($records as $record) {
                                     if (($record->status instanceof \App\Enums\TransactionStatus ? $record->status->value : $record->status) !== 'pending') continue;
-                                    
-                                    $record->update(['status' => 'selesai']);
 
-                                    foreach ($record->items as $model) {
-                                        $item = \App\Models\Item::lockForUpdate()->find($model->item_id);
-                                        $stockBefore = $item->current_stock;
-
-                                        $isSupplierReturn = ($record->type === 'supplier' || empty($record->type));
-
-                                        $supplierId = $record->supplier_id;
-                                        $itemSupplier = null;
-                                        
-                                        if ($supplierId) {
-                                            $itemSupplier = \App\Models\ItemSupplier::firstOrCreate(
-                                                ['item_id' => $item->id, 'supplier_id' => $supplierId],
-                                                ['harga_beli' => $model->price ?? $item->harga_beli, 'current_stock' => 0]
-                                            );
-                                        }
-
-                                        if ($isSupplierReturn) {
-                                            if ($item->current_stock < $model->quantity) {
-                                                throw \Illuminate\Validation\ValidationException::withMessages([
-                                                    'bulk_approve' => "Stok {$item->name} tidak cukup. Tersedia: {$item->current_stock}",
-                                                ]);
-                                            }
-                                            if ($itemSupplier && $itemSupplier->current_stock < $model->quantity) {
-                                                throw \Illuminate\Validation\ValidationException::withMessages([
-                                                    'bulk_approve' => "Stok {$item->name} dari supplier ini tidak cukup. Tersedia: {$itemSupplier->current_stock}",
-                                                ]);
-                                            }
-
-                                            $qty = -$model->quantity;
-                                            $movementType = \App\Enums\MovementType::RETURN_OUT->value;
-                                            $notes = 'Retur ke Supplier (Approved)';
-                                        } else {
-                                            $qty = $model->quantity;
-                                            $movementType = \App\Enums\MovementType::RETURN_IN->value;
-                                            $notes = 'Retur dari Customer (Approved)';
-                                        }
-
-                                        $item->current_stock += $qty;
-                                        $item->save();
-                                        
-                                        if ($itemSupplier) {
-                                            $itemSupplier->current_stock += $qty;
-                                            $itemSupplier->save();
-                                        }
-
-                                        \App\Models\StockMovement::create([
-                                            'item_id' => $item->id,
-                                            'type' => $movementType,
-                                            'reference_id' => $record->id,
-                                            'reference_type' => 'returns',
-                                            'quantity' => $qty,
-                                            'stock_before' => $stockBefore,
-                                            'stock_after' => $item->current_stock,
-                                            'price' => $model->price ?? 0,
-                                            'notes' => $notes,
-                                            'created_by' => auth()->id() ?? 1
-                                        ]);
-                                    }
+                                    app(StockService::class)->approveReturn($record, 'bulk_approve');
                                 }
                             });
 
@@ -292,7 +173,7 @@ class ReturnTransactionsTable
                         ->modalSubmitActionLabel('Tolak')
                         ->modalCancelActionLabel('Batal')
                         ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
-                            $records->each(fn ($record) => $record->update(['status' => 'ditolak']));
+                            $records->each(fn ($record) => app(StockService::class)->rejectReturn($record));
 
                             $count = $records->count();
                             \Filament\Notifications\Notification::make()

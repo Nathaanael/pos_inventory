@@ -29,7 +29,6 @@ class KasirPanelProvider extends PanelProvider
             ->id('kasir')
             ->path('kasir')
             ->login()
-            ->spa()
             ->brandName(fn () => StoreSetting::storeName() . ' · Kasir')
             ->brandLogo(fn () => StoreSetting::current()->logoUrl())
             ->brandLogoHeight('2rem')
