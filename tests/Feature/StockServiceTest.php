@@ -121,26 +121,14 @@ class StockServiceTest extends TestCase
 
     /* ------------------------------ Barang keluar ------------------------------ */
 
-    public function test_simpan_transaksi_pos_belum_mengurangi_stok(): void
-    {
-        $item = $this->makeItem(['A' => 10]);
-
-        $outbound = $this->makeOutbound($item, 4);
-
-        $this->assertSame(TransactionStatus::PENDING, $outbound->status);
-        $this->assertEquals(6000, $outbound->total_amount);
-        $this->assertSame(10, $item->fresh()->current_stock);
-        $this->assertSame(0, StockMovement::count());
-    }
-
-    public function test_setujui_barang_keluar_mengurangi_stok_fifo_dan_mencatat_mutasi(): void
+    public function test_simpan_barang_keluar_langsung_selesai_mengurangi_stok_fifo_dan_mencatat_mutasi(): void
     {
         $item = $this->makeItem(['A' => 3, 'B' => 5]);
+
         $outbound = $this->makeOutbound($item, 4);
 
-        $this->stock->approveOutbound($outbound);
-
-        $this->assertSame(TransactionStatus::COMPLETED, $outbound->fresh()->status);
+        $this->assertSame(TransactionStatus::COMPLETED, $outbound->status);
+        $this->assertEquals(6000, $outbound->total_amount);
         $this->assertSame(4, $item->fresh()->current_stock);
         // FIFO: supplier A (pertama) habis dulu, sisanya dari B.
         $this->assertSame(0, $this->supplierStock($item, $this->supplierA));
@@ -153,28 +141,27 @@ class StockServiceTest extends TestCase
         $this->assertSame(4, (int) $movement->stock_after);
     }
 
-    public function test_setujui_barang_keluar_gagal_jika_stok_kurang_dan_tidak_ada_yang_berubah(): void
+    public function test_simpan_barang_keluar_gagal_jika_stok_kurang_dan_tidak_ada_yang_tersimpan(): void
     {
-        $item = $this->makeItem(['A' => 5]);
-        $outbound = $this->makeOutbound($item, 5);
-        $item->update(['current_stock' => 2]); // stok terpakai transaksi lain
+        $item = $this->makeItem(['A' => 2]);
 
         try {
-            $this->stock->approveOutbound($outbound);
+            $this->makeOutbound($item, 5);
             $this->fail('Seharusnya gagal karena stok tidak cukup.');
-        } catch (ValidationException $e) {
+        } catch (\Exception $e) {
             $this->assertStringContainsString('tidak cukup', $e->getMessage());
         }
 
-        $this->assertSame(TransactionStatus::PENDING, $outbound->fresh()->status);
+        $this->assertSame(0, Outbound::count());
         $this->assertSame(2, $item->fresh()->current_stock);
         $this->assertSame(0, StockMovement::count());
     }
 
-    public function test_batalkan_barang_keluar_pending_tidak_mengubah_stok(): void
+    public function test_batalkan_barang_keluar_mengembalikan_stok(): void
     {
         $item = $this->makeItem(['A' => 5]);
         $outbound = $this->makeOutbound($item, 2);
+        $this->assertSame(3, $item->fresh()->current_stock);
 
         $this->stock->voidOutbound($outbound, 'salah input');
 
@@ -182,6 +169,20 @@ class StockServiceTest extends TestCase
         $this->assertSame(TransactionStatus::VOIDED, $outbound->status);
         $this->assertSame('salah input', $outbound->void_reason);
         $this->assertSame(5, $item->fresh()->current_stock);
+        $this->assertSame(5, $this->supplierStock($item, $this->supplierA));
+        $this->assertSame('void', StockMovement::latest('id')->first()->type);
+    }
+
+    public function test_batalkan_barang_keluar_dua_kali_tidak_menambah_stok_dobel(): void
+    {
+        $item = $this->makeItem(['A' => 5]);
+        $outbound = $this->makeOutbound($item, 2);
+
+        $this->stock->voidOutbound($outbound, 'pertama');
+        $this->stock->voidOutbound($outbound, 'kedua');
+
+        $this->assertSame(5, $item->fresh()->current_stock);
+        $this->assertSame('pertama', $outbound->fresh()->void_reason);
     }
 
     /* ------------------------------ Barang masuk ------------------------------ */

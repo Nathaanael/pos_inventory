@@ -102,18 +102,21 @@ class StockService
      * ===================================================================== */
 
     /**
-     * Simpan transaksi barang keluar dari keranjang POS (status "pending").
-     * Stok BELUM berkurang sampai transaksi disetujui (approveOutbound).
+     * Simpan transaksi barang keluar dari keranjang POS. Transaksi langsung
+     * berstatus "selesai" dan stok langsung berkurang (FIFO per supplier),
+     * tanpa perlu persetujuan admin.
      *
      * @param  array<string, mixed>  $header  transaction_code, date, customer_name, destination, price_type_applied, notes
      * @param  array<int, array{item_id:int, quantity:int, sell_price:float, cogs_price:float, subtotal:float}>  $lines
+     *
+     * @throws ValidationException jika stok salah satu barang tidak cukup (tidak ada yang tersimpan).
      */
     public function createOutbound(array $header, array $lines): Outbound
     {
         return DB::transaction(function () use ($header, $lines) {
             $outbound = Outbound::create([
                 ...$header,
-                'status' => 'pending',
+                'status' => TransactionStatus::PENDING,
                 'created_by' => auth()->id(),
                 'total_amount' => collect($lines)->sum('subtotal'),
                 'total_cogs' => collect($lines)->sum(fn ($l) => $l['cogs_price'] * $l['quantity']),
@@ -131,53 +134,74 @@ class StockService
                 ]);
             }
 
-            return $outbound;
+            $this->completeOutbound($outbound->load('items'), 'Barang Keluar');
+
+            return $outbound->refresh();
         });
     }
 
     /**
-     * Setujui barang keluar: status jadi "selesai" dan stok berkurang (FIFO per supplier).
-     *
-     * @throws ValidationException jika stok salah satu barang tidak cukup (tidak ada yang berubah).
+     * Status jadi "selesai" dan stok berkurang (FIFO per supplier).
+     * Harus dipanggil di dalam DB::transaction.
      */
-    public function approveOutbound(Outbound $outbound, string $notes = 'Barang Keluar (Approved)'): void
+    private function completeOutbound(Outbound $outbound, string $notes): void
     {
-        DB::transaction(function () use ($outbound, $notes) {
-            // Cek semua stok dulu, supaya transaksi tidak setengah jadi.
-            foreach ($outbound->items as $line) {
-                $item = $this->lockItem($line->item_id);
+        // Cek semua stok dulu, supaya transaksi tidak setengah jadi.
+        foreach ($outbound->items as $line) {
+            $item = $this->lockItem($line->item_id);
 
-                if ($item->current_stock < $line->quantity) {
-                    throw ValidationException::withMessages([
-                        'approve' => "Stok {$item->name} tidak cukup untuk di-approve. Tersedia: {$item->current_stock}",
-                    ]);
-                }
+            if ($item->current_stock < $line->quantity) {
+                throw ValidationException::withMessages([
+                    'stock' => "Stok {$item->name} tidak cukup. Tersedia: {$item->current_stock}",
+                ]);
             }
+        }
 
-            $outbound->update(['status' => TransactionStatus::COMPLETED]);
+        $outbound->update(['status' => TransactionStatus::COMPLETED]);
 
-            foreach ($outbound->items as $line) {
-                $item = $this->lockItem($line->item_id);
+        foreach ($outbound->items as $line) {
+            $item = $this->lockItem($line->item_id);
 
-                $this->deductSupplierStockFifo($item, $line->quantity);
+            $this->deductSupplierStockFifo($item, $line->quantity);
 
-                $this->move($item, -$line->quantity, MovementType::OUTBOUND, 'outbounds', $outbound->id, $line->sell_price, $notes);
-            }
-        });
+            $this->move($item, -$line->quantity, MovementType::OUTBOUND, 'outbounds', $outbound->id, $line->sell_price, $notes);
+        }
     }
 
     /**
-     * Batalkan barang keluar yang masih pending. Stok tidak berubah
-     * karena stok baru berkurang saat transaksi disetujui.
+     * Batalkan barang keluar: status jadi "voided" dan stok dikembalikan (mutasi VOID).
+     * Pembatalan kedua kali diabaikan sehingga stok tidak bertambah dobel.
      */
     public function voidOutbound(Outbound $outbound, string $reason): void
     {
-        DB::transaction(fn () => $outbound->update([
-            'status' => TransactionStatus::VOIDED,
-            'voided_at' => now(),
-            'voided_by' => auth()->id(),
-            'void_reason' => $reason,
-        ]));
+        DB::transaction(function () use ($outbound, $reason) {
+            $outbound = Outbound::lockForUpdate()->findOrFail($outbound->id);
+
+            if ($outbound->status === TransactionStatus::VOIDED) {
+                return;
+            }
+
+            $wasCompleted = $outbound->status === TransactionStatus::COMPLETED;
+
+            $outbound->update([
+                'status' => TransactionStatus::VOIDED,
+                'voided_at' => now(),
+                'voided_by' => auth()->id(),
+                'void_reason' => $reason,
+            ]);
+
+            if (! $wasCompleted) {
+                return;
+            }
+
+            foreach ($outbound->items as $line) {
+                $item = $this->lockItem($line->item_id);
+
+                $this->restoreSupplierStock($item, $line->quantity);
+
+                $this->move($item, $line->quantity, MovementType::VOID, 'outbounds', $outbound->id, $line->sell_price, 'Batal Barang Keluar: ' . $reason);
+            }
+        });
     }
 
     /* =====================================================================
@@ -275,6 +299,21 @@ class StockService
             $supplierStock->save();
 
             $remaining -= $deduct;
+        }
+    }
+
+    /**
+     * Kembalikan stok per supplier saat penjualan dibatalkan. Pemotongan FIFO
+     * mengambil dari supplier paling awal, jadi stok dikembalikan ke sana juga.
+     * (Rincian potongan per supplier tidak disimpan, sehingga ini pendekatan.)
+     */
+    private function restoreSupplierStock(Item $item, int $quantity): void
+    {
+        $supplierStock = $item->itemSuppliers()->orderBy('id')->lockForUpdate()->first();
+
+        if ($supplierStock) {
+            $supplierStock->current_stock += $quantity;
+            $supplierStock->save();
         }
     }
 

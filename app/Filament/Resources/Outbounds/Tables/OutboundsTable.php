@@ -104,31 +104,13 @@ class OutboundsTable
                 // EditAction::make()
                 //     ->label('Ubah')
                 //     ->visible(fn ($record) => $record->status->value === 'pending'),
-                Action::make('approve')
-                    ->label('Setujui')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->modalHeading('Setujui Barang Keluar')
-                    ->modalDescription('Apakah Anda yakin ingin menyetujui transaksi ini? Stok barang akan berkurang secara otomatis.')
-                    ->modalSubmitActionLabel('Setujui')
-                    ->modalCancelActionLabel('Batal')
-                    ->action(function ($record) {
-                        app(StockService::class)->approveOutbound($record);
-
-                        \Filament\Notifications\Notification::make()
-                            ->title('Transaksi Berhasil Disetujui')
-                            ->success()
-                            ->send();
-                    })
-                    ->visible(fn ($record) => $record->status->value === 'pending'),
                 Action::make('void')
                     ->label('Batalkan')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
                     ->modalHeading('Batalkan Transaksi')
-                    ->modalDescription('Apakah Anda yakin ingin membatalkan transaksi ini?')
+                    ->modalDescription('Apakah Anda yakin ingin membatalkan transaksi ini? Stok barang akan dikembalikan.')
                     ->modalSubmitActionLabel('Batalkan')
                     ->modalCancelActionLabel('Batal')
                     ->form([
@@ -138,7 +120,7 @@ class OutboundsTable
                         app(StockService::class)->voidOutbound($record, $data['void_reason']);
                         \Filament\Notifications\Notification::make()->title('Transaksi Berhasil Dibatalkan')->success()->send();
                     })
-                    ->visible(fn ($record) => $record->status->value === 'pending'),
+                    ->visible(fn ($record) => in_array($record->status->value, ['selesai', 'pending'], true)),
             ])
             ->bulkActions([
                 \Filament\Actions\BulkActionGroup::make([
@@ -149,37 +131,6 @@ class OutboundsTable
                         ->modalSubmitActionLabel('Hapus')
                         ->modalCancelActionLabel('Batal')
                         ->successNotificationTitle('Berhasil dihapus'),
-                    \Filament\Actions\BulkAction::make('approve')
-                        ->label('Setujui Terpilih')
-                        ->icon('heroicon-o-check-circle')
-                        ->color('success')
-                        ->requiresConfirmation()
-                        ->modalHeading('Setujui Terpilih')
-                        ->modalDescription('Apakah Anda yakin ingin menyetujui transaksi terpilih?')
-                        ->modalSubmitActionLabel('Setujui')
-                        ->modalCancelActionLabel('Batal')
-                        ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
-                            $count = 0;
-                            foreach ($records as $record) {
-                                if ($record->status->value !== 'pending') continue;
-
-                                app(StockService::class)->approveOutbound($record, 'Barang Keluar (Setujui Massal)');
-                                $count++;
-                            }
-                            
-                            if ($count > 0) {
-                                \Filament\Notifications\Notification::make()
-                                    ->title("$count Transaksi Berhasil Disetujui")
-                                    ->success()
-                                    ->send();
-                            } else {
-                                \Filament\Notifications\Notification::make()
-                                    ->title("Tidak ada transaksi pending yang dipilih")
-                                    ->warning()
-                                    ->send();
-                            }
-                        })
-                        ->deselectRecordsAfterCompletion(),
                 ]),
             ])
             ->columnManager(false);

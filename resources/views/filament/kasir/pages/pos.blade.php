@@ -519,7 +519,7 @@
                 <span x-show="!saving">Simpan Transaksi</span>
                 <span x-show="saving">Menyimpan…</span>
             </button>
-            <div class="kpos-hint">Ctrl+Enter untuk simpan · stok berkurang setelah disetujui admin</div>
+            <div class="kpos-hint">Ctrl+Enter untuk simpan</div>
             </div>
         </div>
 

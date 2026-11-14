@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Portal\Pages\AppLauncher;
 use App\Models\StoreSetting;
 use App\Http\Middleware\FilamentAuthenticate;
+use App\Filament\Pages\Auth\RedirectToMainLogin;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -28,7 +29,7 @@ class PortalPanelProvider extends PanelProvider
             // ->default()
             ->id('portal')
             ->path('portal')
-            ->login()
+            ->login(RedirectToMainLogin::class)
             ->brandName(fn () => StoreSetting::storeName())
             ->brandLogo(fn () => StoreSetting::current()->logoUrl())
             ->brandLogoHeight('2.5rem')

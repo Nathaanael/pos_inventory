@@ -27,4 +27,12 @@ class FilamentAuthenticate extends Authenticate
 
         parent::authenticate($request, $guards);
     }
+
+    /**
+     * Belum login: selalu ke satu halaman login yang sama, dari panel mana pun.
+     */
+    protected function redirectTo($request): ?string
+    {
+        return route('filament.admin.auth.login');
+    }
 }

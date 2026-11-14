@@ -62,7 +62,7 @@ class KasirPosTest extends TestCase
         $this->assertTrue($result['ok'], $result['message']);
 
         $outbound = Outbound::with('items')->sole();
-        $this->assertSame(TransactionStatus::PENDING, $outbound->status);
+        $this->assertSame(TransactionStatus::COMPLETED, $outbound->status);
         $this->assertEquals(32500, $outbound->total_amount);   // 3 × 10.000 + 1 × 2.500
         $this->assertSame('tunai', $outbound->payment_method);
         $this->assertEquals(50000, $outbound->paid_amount);
@@ -70,8 +70,9 @@ class KasirPosTest extends TestCase
         $this->assertSame(auth()->id(), $outbound->created_by);
         $this->assertMatchesRegularExpression('/^OUT-\d{4}-\d{4}-\d{4}$/', $outbound->transaction_code);
         $this->assertCount(2, $outbound->items); // baris barang yang sama digabung
-        // Stok belum berkurang sebelum disetujui admin.
-        $this->assertSame(10, $a->fresh()->current_stock);
+        // Stok langsung berkurang, tanpa persetujuan admin.
+        $this->assertSame(7, $a->fresh()->current_stock);
+        $this->assertSame(9, $b->fresh()->current_stock);
     }
 
     public function test_checkout_ditolak_jika_stok_tidak_cukup(): void
