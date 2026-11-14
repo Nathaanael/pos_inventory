@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\StockOpnames;
 
+use App\Enums\Feature;
+use App\Models\StoreSetting;
 use App\Filament\Resources\StockOpnames\Pages\CreateStockOpname;
 use App\Filament\Resources\StockOpnames\Pages\EditStockOpname;
 use App\Filament\Resources\StockOpnames\Pages\ListStockOpnames;
@@ -17,6 +19,12 @@ use Filament\Tables\Table;
 class StockOpnameResource extends Resource
 {
     protected static ?string $model = StockOpname::class;
+
+    /** Menu & halaman hanya ada bila fitur aktif (Pengaturan Toko → Fitur). */
+    public static function canAccess(): bool
+    {
+        return StoreSetting::hasFeature(Feature::StockOpname) && parent::canAccess();
+    }
 
     protected static ?string $modelLabel = 'Stock Opname';
     

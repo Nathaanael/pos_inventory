@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Brands;
 
+use App\Enums\Feature;
+use App\Models\StoreSetting;
 use App\Filament\Resources\Brands\Pages\CreateBrand;
 use App\Filament\Resources\Brands\Pages\EditBrand;
 use App\Filament\Resources\Brands\Pages\ListBrands;
@@ -17,6 +19,12 @@ use Filament\Tables\Table;
 class BrandResource extends Resource
 {
     protected static ?string $model = Brand::class;
+
+    /** Menu & halaman hanya ada bila fitur aktif (Pengaturan Toko → Fitur). */
+    public static function canAccess(): bool
+    {
+        return StoreSetting::hasFeature(Feature::Brand) && parent::canAccess();
+    }
 
     protected static ?string $modelLabel = 'Merk';
     

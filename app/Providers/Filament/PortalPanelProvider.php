@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Portal\Pages\AppLauncher;
 use App\Models\StoreSetting;
+use App\Http\Middleware\EnsureStoreIsSetUp;
 use App\Http\Middleware\FilamentAuthenticate;
 use App\Filament\Pages\Auth\RedirectToMainLogin;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -61,6 +62,7 @@ class PortalPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 FilamentAuthenticate::class,
+                EnsureStoreIsSetUp::class,
             ]);
     }
 }

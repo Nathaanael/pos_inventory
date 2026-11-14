@@ -464,12 +464,14 @@
 
             <div class="kpos-cart-foot">
             <div class="kpos-summary">
+                @if (\App\Models\StoreSetting::hasFeature(\App\Enums\Feature::WholesalePrice))
                 <div class="kpos-row muted"><span>Harga</span>
                     <span class="kpos-seg" style="--n:2; width: 170px">
                         <button type="button" x-bind:class="{ 'is-on': priceType === 'retail' }" x-on:click="priceType = 'retail'" style="height:28px">Eceran</button>
                         <button type="button" x-bind:class="{ 'is-on': priceType === 'grosir' }" x-on:click="priceType = 'grosir'" style="height:28px">Grosir</button>
                     </span>
                 </div>
+                @endif
                 <div class="kpos-row muted"><span x-text="'Subtotal (' + totalQty + ' barang)'"></span><span x-text="money(total)"></span></div>
                 <div class="kpos-total"><span>Total</span><span x-text="money(total)"></span></div>
             </div>

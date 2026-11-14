@@ -24,6 +24,7 @@ class KasirPosTest extends TestCase
 
         Filament::setCurrentPanel(Filament::getPanel('kasir'));
         $this->actingAs(User::factory()->create(['role' => User::ROLE_KASIR]));
+        $this->markStoreAsSetUp();
     }
 
     private function makeItem(int $stock, float $retail = 10000, float $grosir = 8000): Item

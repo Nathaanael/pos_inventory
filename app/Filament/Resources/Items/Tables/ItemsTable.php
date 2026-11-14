@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Items\Tables;
 
 use App\Filament\Resources\Items\Schemas\ItemViewForm;
+use App\Enums\Feature;
+use App\Models\StoreSetting;
 use App\Models\Supplier;
 
 use Filament\Actions\BulkActionGroup;
@@ -115,6 +117,7 @@ class ItemsTable
             ->filters([
                 \Filament\Tables\Filters\SelectFilter::make('brand_id')
                     ->relationship('brand', 'name')
+                    ->visible(fn () => StoreSetting::hasFeature(Feature::Brand))
                     ->label('Merk')
                     ->searchable()
                     ->preload(),

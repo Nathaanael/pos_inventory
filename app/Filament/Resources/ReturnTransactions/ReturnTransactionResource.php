@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\ReturnTransactions;
 
+use App\Enums\Feature;
+use App\Models\StoreSetting;
 use App\Filament\Resources\ReturnTransactions\Pages\CreateReturnTransaction;
 use App\Filament\Resources\ReturnTransactions\Pages\EditReturnTransaction;
 use App\Filament\Resources\ReturnTransactions\Pages\ListReturnTransactions;
@@ -17,6 +19,12 @@ use Filament\Tables\Table;
 class ReturnTransactionResource extends Resource
 {
     protected static ?string $model = ReturnTransaction::class;
+
+    /** Menu & halaman hanya ada bila fitur aktif (Pengaturan Toko → Fitur). */
+    public static function canAccess(): bool
+    {
+        return StoreSetting::hasFeature(Feature::Returns) && parent::canAccess();
+    }
 
     protected static ?string $modelLabel = 'Transaksi Retur';
     

@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Models\StoreSetting;
 use App\Filament\Pages\Auth\RedirectToMainLogin;
+use App\Http\Middleware\EnsureStoreIsSetUp;
 use App\Http\Middleware\FilamentAuthenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -51,6 +52,7 @@ class KasirPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 FilamentAuthenticate::class,
+                EnsureStoreIsSetUp::class,
             ]);
     }
 }

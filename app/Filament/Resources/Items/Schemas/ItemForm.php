@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\Items\Schemas;
 
+use App\Enums\Feature;
 use App\Models\Item;
+use App\Models\StoreSetting;
 use App\Models\Supplier;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
@@ -53,8 +55,8 @@ class ItemForm
                                 ->columnSpanFull(),
                         ]),
 
-                    Section::make('Harga Jual & Pengaturan Grosir')
-                        ->description('Harga jual dan pengaturan grosir berlaku sama untuk semua supplier')
+                    Section::make(fn () => StoreSetting::hasFeature(Feature::WholesalePrice) ? 'Harga Jual & Pengaturan Grosir' : 'Harga Jual')
+                        ->description('Harga jual berlaku sama untuk semua supplier')
                         ->columns(3)
                         ->schema([
                             TextInput::make('harga_jual_retail')
@@ -66,6 +68,7 @@ class ItemForm
                                 ->stripCharacters(','),
                             TextInput::make('harga_jual_grosir')
                                 ->label('Harga Jual Grosir')
+                                ->visible(fn () => StoreSetting::hasFeature(Feature::WholesalePrice))
                                 ->prefix('Rp')
                                 ->required()
                                 ->numeric()
@@ -73,6 +76,7 @@ class ItemForm
                                 ->stripCharacters(','),
                             TextInput::make('min_grosir_qty')
                                 ->label('Min Qty Grosir')
+                                ->visible(fn () => StoreSetting::hasFeature(Feature::WholesalePrice))
                                 ->required()
                                 ->numeric(),
                         ]),
@@ -123,7 +127,7 @@ class ItemForm
                 ]),
 
                 Group::make()->columnSpan(['default' => 3, 'lg' => 1])->schema([
-                    Section::make('Status & Gambar')
+                    Section::make(fn () => StoreSetting::hasFeature(Feature::ItemImage) ? 'Status & Gambar' : 'Status')
                         ->schema([
                             Toggle::make('is_active')
                                 ->label('Aktif')
@@ -131,6 +135,7 @@ class ItemForm
                                 ->required(),
                             FileUpload::make('image')
                                 ->label('Gambar')
+                                ->visible(fn () => StoreSetting::hasFeature(Feature::ItemImage))
                                 ->image()
                                 ->disk('public')
                                 ->directory('items'),
@@ -140,6 +145,7 @@ class ItemForm
                         ->schema([
                             Select::make('brand_id')
                                 ->label('Merk')
+                                ->visible(fn () => StoreSetting::hasFeature(Feature::Brand))
                                 ->relationship('brand', 'name')
                                 ->preload()
                                 ->searchable(),

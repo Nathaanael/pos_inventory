@@ -2,8 +2,10 @@
 
 namespace App\Filament\Concerns;
 
+use App\Enums\Feature;
 use App\Models\Category;
 use App\Models\Item;
+use App\Models\StoreSetting;
 use App\Services\StockService;
 use Filament\Notifications\Notification;
 
@@ -179,6 +181,11 @@ trait InteractsWithPosCart
      */
     public function updatedPriceTypeApplied(): void
     {
+        // Harga grosir hanya bila fiturnya aktif (Pengaturan Toko → Fitur).
+        if (! StoreSetting::hasFeature(Feature::WholesalePrice)) {
+            $this->price_type_applied = 'retail';
+        }
+
         foreach ($this->cartItems as $index => $cartItem) {
             $item = Item::find($cartItem['item_id']);
             if ($item) {

@@ -2,9 +2,11 @@
 
 namespace App\Filament\Kasir\Pages;
 
+use App\Enums\Feature;
 use App\Models\Category;
 use App\Models\Item;
 use App\Models\Outbound;
+use App\Models\StoreSetting;
 use App\Services\StockService;
 use Filament\Pages\Page;
 use Filament\Support\Enums\Width;
@@ -54,6 +56,8 @@ class Pos extends Page
      */
     public function getCatalog(): array
     {
+        $showImages = StoreSetting::hasFeature(Feature::ItemImage);
+
         return Item::query()
             ->where('is_active', true)
             ->with('unit:id,name')
@@ -69,7 +73,7 @@ class Pos extends Page
                 'retail' => (float) $item->harga_jual_retail,
                 'grosir' => (float) $item->harga_jual_grosir,
                 'stock' => (int) $item->current_stock,
-                'image' => $item->image ? Storage::url($item->image) : null,
+                'image' => $showImages && $item->image ? Storage::url($item->image) : null,
             ])
             ->all();
     }
@@ -141,7 +145,8 @@ class Pos extends Page
      */
     private function processCheckout(array $lines, string $priceType, string $paymentMethod, ?float $paidAmount, ?string $customerName, ?string $notes): array
     {
-        $priceType = $priceType === 'grosir' ? 'grosir' : 'retail';
+        // Harga grosir hanya bila fiturnya aktif (Pengaturan Toko → Fitur).
+        $priceType = $priceType === 'grosir' && StoreSetting::hasFeature(Feature::WholesalePrice) ? 'grosir' : 'retail';
 
         if (! array_key_exists($paymentMethod, self::PAYMENT_METHODS)) {
             return ['ok' => false, 'message' => 'Pilih metode pembayaran.'];

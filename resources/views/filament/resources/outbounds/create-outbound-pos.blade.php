@@ -679,7 +679,7 @@
                     >
                         {{-- Image/Placeholder --}}
                         <div class="pos-product-img-wrapper">
-                            @if($item->image)
+                            @if($item->image && \App\Models\StoreSetting::hasFeature(\App\Enums\Feature::ItemImage))
                                 <img src="{{ Storage::url($item->image) }}" alt="{{ $item->name }}" style="width: 100%; height: 100%; object-fit: cover;">
                             @else
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#d1d5db" style="width: 3.5rem; height: 3.5rem;">
@@ -754,6 +754,7 @@
                         <input type="text" wire:model="destination" class="pos-form-input" placeholder="Tujuan pengiriman..." />
                     </div>
                 </div>
+                @if (\App\Models\StoreSetting::hasFeature(\App\Enums\Feature::WholesalePrice))
                 <div style="margin-bottom: 1rem;">
                     <div class="pos-form-group" style="width: 50%;">
                         <label class="pos-form-label">Tipe Harga</label>
@@ -763,6 +764,7 @@
                         </select>
                     </div>
                 </div>
+                @endif
 
                 <hr class="pos-divider" />
 
