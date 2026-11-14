@@ -70,17 +70,20 @@ class StoreSetting extends Model
 
     /**
      * Simpan status SEMUA fitur: yang ada di $enabled aktif, sisanya nonaktif.
+     * Simpan business_type lebih dulu, karena fitur khusus dicek terhadapnya.
      *
      * @param  array<int, Feature|string>  $enabled
      */
     public static function saveFeatures(array $enabled): void
     {
         $enabled = array_map(fn ($f) => $f instanceof Feature ? $f->value : $f, $enabled);
+        $business = static::query()->first()?->business_type; // sudah di-cast ke BusinessType
 
         foreach (Feature::cases() as $feature) {
             StoreFeature::updateOrCreate(
                 ['feature' => $feature->value],
-                ['is_enabled' => in_array($feature->value, $enabled, true)],
+                // Fitur khusus (mis. meja untuk FNB) otomatis nonaktif di jenis usaha lain.
+                ['is_enabled' => in_array($feature->value, $enabled, true) && $feature->isAvailableFor($business)],
             );
         }
 

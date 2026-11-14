@@ -8,6 +8,10 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use App\Filament\Resources\Outbounds\Schemas\OutboundViewForm;
+use App\Enums\Feature;
+use App\Enums\OrderType;
+use App\Models\Outbound;
+use App\Models\StoreSetting;
 use App\Services\StockService;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -17,6 +21,7 @@ class OutboundsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->with('diningTable'))
             ->searchPlaceholder('Cari...')
             ->columns([
                 TextColumn::make('transaction_code')
@@ -29,6 +34,13 @@ class OutboundsTable
                 TextColumn::make('customer_name')
                     ->label('Nama Pelanggan')
                     ->searchable(),
+                TextColumn::make('order_type')
+                    ->label('Pesanan')
+                    ->state(fn (Outbound $record) => $record->orderLabel())
+                    ->placeholder('-')
+                    ->badge()
+                    ->color(fn (Outbound $record) => $record->order_type === OrderType::TakeAway ? 'info' : 'warning')
+                    ->visible(fn () => StoreSetting::hasFeature(Feature::DiningTables) || StoreSetting::hasFeature(Feature::TakeAway)),
                 TextColumn::make('price_type_applied')
                     ->label('Tipe Harga')
                     ->badge(),

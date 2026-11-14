@@ -18,7 +18,7 @@ enum BusinessType: string
     {
         return match ($this) {
             self::Bangunan => 'Toko Bangunan',
-            self::Makanan => 'Makanan & Minuman',
+            self::Makanan => 'FNB',
             self::Elektronik => 'Elektronik & HP',
             self::Fashion => 'Fashion',
             self::Umum => 'Toko Umum / Lainnya',
@@ -29,7 +29,7 @@ enum BusinessType: string
     {
         return match ($this) {
             self::Bangunan => 'Material, cat, listrik, perkakas',
-            self::Makanan => 'Warung, kafe, rumah makan, kue',
+            self::Makanan => 'Restoran, kafe, warung makan, kedai minuman',
             self::Elektronik => 'Handphone, aksesoris, peralatan elektronik',
             self::Fashion => 'Pakaian, sepatu, tas, aksesoris',
             self::Umum => 'Toko kelontong, minimarket, usaha lain',
@@ -57,7 +57,7 @@ enum BusinessType: string
     {
         return match ($this) {
             self::Bangunan => [Feature::WholesalePrice, Feature::Brand, Feature::Returns, Feature::StockOpname],
-            self::Makanan => [Feature::ItemImage, Feature::StockOpname],
+            self::Makanan => [Feature::ItemImage, Feature::StockOpname, Feature::DiningTables, Feature::TakeAway],
             self::Elektronik => [Feature::Brand, Feature::ItemImage, Feature::Returns, Feature::StockOpname],
             self::Fashion => [Feature::Brand, Feature::ItemImage, Feature::Returns, Feature::StockOpname],
             self::Umum => [Feature::WholesalePrice, Feature::ItemImage, Feature::Returns, Feature::StockOpname],

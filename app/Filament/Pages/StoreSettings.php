@@ -110,8 +110,11 @@ class StoreSettings extends Page
                             ->live(),
                         CheckboxList::make('features')
                             ->label('Fitur Aktif')
-                            ->options(collect(Feature::cases())->mapWithKeys(fn (Feature $f) => [$f->value => $f->label()]))
-                            ->descriptions(collect(Feature::cases())->mapWithKeys(fn (Feature $f) => [$f->value => $f->description()]))
+                            // Fitur khusus (mis. Meja & Take Away untuk FNB) hanya muncul untuk jenis usahanya.
+                            ->options(fn (Get $get) => collect(Feature::availableFor(BusinessType::tryFrom((string) $get('business_type'))))
+                                ->mapWithKeys(fn (Feature $f) => [$f->value => $f->label()]))
+                            ->descriptions(fn (Get $get) => collect(Feature::availableFor(BusinessType::tryFrom((string) $get('business_type'))))
+                                ->mapWithKeys(fn (Feature $f) => [$f->value => $f->description()]))
                             ->columns(2)
                             ->bulkToggleable()
                             ->hintAction(

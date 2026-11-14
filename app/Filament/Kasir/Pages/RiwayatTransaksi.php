@@ -2,8 +2,11 @@
 
 namespace App\Filament\Kasir\Pages;
 
+use App\Enums\Feature;
+use App\Enums\OrderType;
 use App\Enums\TransactionStatus;
 use App\Models\Outbound;
+use App\Models\StoreSetting;
 use App\Services\ThermalPrintService;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -32,7 +35,7 @@ class RiwayatTransaksi extends Page implements HasTable
 
     protected static ?string $slug = 'riwayat';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
 
     public function content(Schema $schema): Schema
     {
@@ -45,7 +48,7 @@ class RiwayatTransaksi extends Page implements HasTable
             ->query(
                 Outbound::query()
                     ->where('created_by', auth()->id())
-                    ->with(['items.item.unit', 'createdBy'])
+                    ->with(['items.item.unit', 'createdBy', 'diningTable'])
             )
             ->defaultSort('created_at', 'desc')
             ->columns([
@@ -60,6 +63,13 @@ class RiwayatTransaksi extends Page implements HasTable
                     ->label('Pelanggan')
                     ->placeholder('-')
                     ->searchable(),
+                TextColumn::make('order_type')
+                    ->label('Pesanan')
+                    ->state(fn (Outbound $record) => $record->orderLabel())
+                    ->placeholder('-')
+                    ->badge()
+                    ->color(fn (Outbound $record) => $record->order_type === OrderType::TakeAway ? 'info' : 'warning')
+                    ->visible(fn () => StoreSetting::hasFeature(Feature::DiningTables) || StoreSetting::hasFeature(Feature::TakeAway)),
                 TextColumn::make('items_count')
                     ->label('Jenis Barang')
                     ->counts('items'),

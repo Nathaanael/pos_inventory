@@ -16,10 +16,13 @@ abstract class TestCase extends BaseTestCase
         StoreSetting::flushCache();
     }
 
-    /** Tandai toko sudah melewati wizard setup, dengan fitur tertentu aktif (default: semua). */
-    protected function markStoreAsSetUp(?array $features = null): void
+    /**
+     * Tandai toko sudah melewati wizard setup, dengan fitur tertentu aktif (default: semua
+     * yang tersedia untuk jenis usahanya; fitur khusus FNB hanya aktif bila $business = 'makanan').
+     */
+    protected function markStoreAsSetUp(?array $features = null, string $business = 'umum'): void
     {
-        StoreSetting::current()->update(['business_type' => 'umum', 'setup_completed_at' => now()]);
+        StoreSetting::current()->update(['business_type' => $business, 'setup_completed_at' => now()]);
         StoreSetting::saveFeatures($features ?? Feature::cases());
         StoreSetting::flushCache();
     }

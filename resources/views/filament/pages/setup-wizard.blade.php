@@ -277,7 +277,7 @@
                     </div>
                 @endif
                 <div class="sw-grid">
-                    @foreach (\App\Enums\Feature::cases() as $feature)
+                    @foreach (\App\Enums\Feature::availableFor($selected) as $feature)
                         <button type="button" class="sw-opt"
                                 x-bind:class="{ 'is-on': features.includes('{{ $feature->value }}') }"
                                 x-bind:aria-pressed="features.includes('{{ $feature->value }}')"
@@ -318,7 +318,7 @@
                     <div class="sw-sum-row">
                         <dt>Fitur</dt>
                         <dd class="sw-chips">
-                            @foreach (\App\Enums\Feature::cases() as $feature)
+                            @foreach (\App\Enums\Feature::availableFor($selected) as $feature)
                                 <span class="sw-chip {{ in_array($feature->value, $features, true) ? '' : 'off' }}">{{ $feature->label() }}</span>
                             @endforeach
                         </dd>

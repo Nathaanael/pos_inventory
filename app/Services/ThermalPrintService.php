@@ -115,6 +115,9 @@ class ThermalPrintService
         $printer->text("No     : " . $outbound->transaction_code . "\n");
         $printer->text("Tgl    : " . $outbound->date->format('d/m/Y') . "\n");
 
+        if ($outbound->orderLabel()) {
+            $printer->text("Pesanan: " . $outbound->orderLabel() . "\n");
+        }
         if ($outbound->customer_name) {
             $printer->text("Cust   : " . $outbound->customer_name . "\n");
         }

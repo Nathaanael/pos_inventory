@@ -188,6 +188,9 @@
         @if($outbound->customer_name)
         <tr><td class="lbl">Customer</td><td class="sep">:</td><td>{{ $outbound->customer_name }}</td></tr>
         @endif
+        @if($outbound->orderLabel())
+        <tr><td class="lbl">Pesanan</td><td class="sep">:</td><td><strong>{{ $outbound->orderLabel() }}</strong></td></tr>
+        @endif
         @if($outbound->destination)
         <tr><td class="lbl">Tujuan</td><td class="sep">:</td><td>{{ $outbound->destination }}</td></tr>
         @endif

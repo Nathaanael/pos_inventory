@@ -118,7 +118,7 @@ class StoreSetupTest extends TestCase
         // Satu baris per fitur, termasuk yang nonaktif.
         $this->assertSame(count(Feature::cases()), StoreFeature::count());
         $this->assertEqualsCanonicalizing(
-            ['gambar_barang', 'grosir'],
+            ['gambar_barang', 'grosir', 'meja', 'take_away'], // preset FNB + grosir − stock opname
             StoreFeature::where('is_enabled', true)->pluck('feature')->all(),
         );
 

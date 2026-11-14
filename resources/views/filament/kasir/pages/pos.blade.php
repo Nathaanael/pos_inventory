@@ -2,6 +2,10 @@
     $catalog = $this->getCatalog();
     $categories = $this->getCategoryList();
     $recentOrders = $this->getRecentOrders();
+    $fnb = $this->getFnbOptions();
+    $tables = $this->getTableList();
+    // Dari halaman Meja: /kasir/pos?meja=ID langsung memilih meja itu.
+    $preselectTable = request()->integer('meja') ?: null;
 @endphp
 
 <x-filament-panels::page>
@@ -124,6 +128,49 @@
     .kpos-submit:disabled { opacity: .35; cursor: not-allowed; }
     .kpos-hint { font-size: 11px; color: var(--muted); text-align: center; }
 
+    /* FNB: tipe pesanan & meja */
+    .kpos-fnb { display: flex; flex-direction: column; gap: 8px; }
+    .kpos-ordertype button { height: 40px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; }
+    .kpos-ordertype svg { width: 18px; height: 18px; }
+
+    /* Tombol meja di keranjang */
+    .kpos-tablebtn { width: 100%; padding: 10px; border-radius: 14px; border: 2px dashed var(--line); background: var(--surface-2); color: var(--text); cursor: pointer; text-align: left; transition: border-color .1s; }
+    .kpos-tablebtn:hover { border-color: var(--muted); }
+    .kpos-tablebtn.is-set { border-style: solid; border-color: #16a34a; background: #ecfdf3; }
+    .dark .kpos-tablebtn.is-set { background: #0f2e1f; }
+    .kpos-tablebtn.is-missing { border-color: var(--danger); animation: kpos-pulse 1.4s ease-in-out infinite; }
+    @keyframes kpos-pulse { 50% { box-shadow: 0 0 0 4px rgba(225, 29, 72, .15); } }
+    .kpos-tablebtn-in { display: flex; align-items: center; gap: 12px; }
+    .kpos-tablebtn-no { min-width: 52px; height: 52px; padding: 0 8px; border-radius: 12px; background: #16a34a; color: #fff; display: grid; place-items: center; font-size: 20px; font-weight: 800; flex: none; }
+    .kpos-tablebtn-no.is-empty { background: var(--surface); color: var(--muted); border: 1px solid var(--line); }
+    .kpos-tablebtn-no svg { width: 24px; height: 24px; }
+    .kpos-tablebtn-txt { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+    .kpos-tablebtn-txt strong { font-size: 16px; }
+    .kpos-tablebtn-txt small { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .kpos-tablebtn-change { font-size: 13px; font-weight: 600; color: #16a34a; padding: 0 6px; }
+
+    /* Pemilih meja */
+    .kpos-picker { width: 100%; max-width: 860px; max-height: calc(100vh - 32px); display: flex; flex-direction: column; background: var(--surface); color: var(--text); border-radius: 22px; padding: 22px; box-shadow: 0 24px 60px -20px rgba(0,0,0,.45); }
+    .kpos-picker-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .kpos-picker-tools { display: flex; gap: 10px; margin: 16px 0; flex-wrap: wrap; }
+    .kpos-picker-tools .kpos-input { flex: 1; min-width: 200px; height: 46px; font-size: 15px; }
+    .kpos-picker-tools .kpos-seg button { height: 46px; }
+    .kpos-picker-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; padding: 4px; align-content: start; }
+    .kpos-tile { position: relative; min-height: 112px; padding: 14px; border-radius: 16px; border: 2px solid transparent; display: flex; flex-direction: column; gap: 2px; text-align: left; cursor: pointer; transition: transform .08s; }
+    .kpos-tile:hover { transform: translateY(-2px); }
+    .kpos-tile:active { transform: scale(.97); }
+    /* Sama dengan halaman Meja: kosong = merah, terisi = hijau */
+    .kpos-tile.is-free { background: #fde0e0; color: #9b1c1c; }
+    .kpos-tile.is-busy { background: #d5f5e3; color: #14532d; }
+    .dark .kpos-tile.is-free { background: #4a1d1f; color: #fecaca; }
+    .dark .kpos-tile.is-busy { background: #14382a; color: #a7f3d0; }
+    .kpos-tile.is-selected { border-color: var(--text); }
+    .kpos-tile-no { font-size: 28px; font-weight: 800; line-height: 1.1; }
+    .kpos-tile-name { font-size: 13px; opacity: .8; min-height: 1.2em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .kpos-tile-status { margin-top: auto; font-size: 12px; font-weight: 600; }
+    .kpos-tile-check { position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; border-radius: 999px; background: var(--text); color: var(--surface); display: grid; place-items: center; }
+    .kpos-tile-check svg { width: 13px; height: 13px; }
+
     /* Modal konfirmasi */
     .kpos-modal { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px; background: rgba(0,0,0,.45); }
     .kpos-modal-box { width: 100%; max-width: 420px; background: var(--surface); color: var(--text); border-radius: 22px; padding: 28px 24px 24px; text-align: center; box-shadow: 0 24px 60px -20px rgba(0,0,0,.45); }
@@ -148,7 +195,7 @@
 </style>
 
 <script>
-    window.kasirPos = function (catalog, categories, paymentMethods, recent) {
+    window.kasirPos = function (catalog, categories, paymentMethods, recent, fnb, tables, preselectTable) {
         const palette = ['#cde9df', '#e3d3f2', '#c7e3ef', '#cfcdf4', '#f6c7dc', '#efdbe6', '#f5ccd5', '#c8ecd9', '#f6e0bf', '#d6e4c4'];
         const fmt = new Intl.NumberFormat('id-ID');
 
@@ -169,6 +216,13 @@
             saving: false,
             confirmOpen: false, // modal konfirmasi kosongkan keranjang
             saleId: null,       // id unik per penjualan, mencegah transaksi tersimpan dobel
+            fnb,                // { tables: bool, takeAway: bool } fitur FNB yang aktif
+            tables,             // [{ id, number, name, occupied }]
+            orderType: 'dine_in',
+            tableId: tables.some(t => t.id === preselectTable) ? preselectTable : null,
+            tablePickerOpen: false,
+            tableSearch: '',
+            tableFilter: 'all',  // all | free | busy
 
             newSaleId() {
                 return window.crypto?.randomUUID?.() ?? (Date.now().toString(36) + Math.random().toString(36).slice(2));
@@ -252,6 +306,7 @@
             },
             resetSale() {
                 this.cart = []; this.paid = ''; this.customer = ''; this.notes = ''; this.showNotes = false;
+                this.orderType = 'dine_in'; this.tableId = null;
                 this.saleId = this.newSaleId();
             },
             get lines() {
@@ -270,6 +325,39 @@
                 for (const step of [5000, 10000, 50000, 100000]) set.add(Math.ceil(t / step) * step);
                 return [...set].sort((a, b) => a - b).slice(0, 4);
             },
+            // ---------- FNB: tipe pesanan & meja ----------
+            get hasFnb() { return this.fnb.tables || this.fnb.takeAway; },
+            get needsTable() { return this.fnb.tables && this.orderType === 'dine_in'; },
+            get selectedTable() { return this.tables.find(t => t.id === this.tableId) ?? null; },
+            get freeTableCount() { return this.tables.filter(t => !t.occupied).length; },
+            get pickerTables() {
+                const q = this.tableSearch.trim().toLowerCase();
+                return this.tables
+                    .filter(t => this.tableFilter === 'all' || (this.tableFilter === 'free' ? !t.occupied : t.occupied))
+                    .filter(t => !q || t.number.toLowerCase().includes(q) || (t.name ?? '').toLowerCase().includes(q));
+            },
+            setOrderType(type) {
+                this.orderType = type;
+                if (type === 'take_away') this.tableId = null;
+            },
+            openTablePicker() {
+                this.tableSearch = ''; this.tableFilter = 'all';
+                this.tablePickerOpen = true;
+                this.$nextTick(() => this.$refs.tableSearch?.focus());
+            },
+            pickTable(t) {
+                this.tableId = t.id;
+                this.tablePickerOpen = false;
+                this.$nextTick(() => this.$refs.search?.focus());
+            },
+            // Enter di kolom cari meja: pilih bila hanya satu hasil / nomor persis sama.
+            pickTableFromSearch() {
+                const q = this.tableSearch.trim().toLowerCase();
+                const exact = this.tables.find(t => t.number.toLowerCase() === q);
+                const target = exact ?? (this.pickerTables.length === 1 ? this.pickerTables[0] : null);
+                if (target) this.pickTable(target);
+            },
+
             get canSubmit() {
                 if (this.saving || !this.cart.length) return false;
                 return this.payment !== 'tunai' || this.paidNumber >= this.total;
@@ -284,6 +372,10 @@
                 if (target) { this.add(target); this.search = ''; }
             },
             shortcut(e) {
+                if (this.tablePickerOpen) {
+                    if (e.key === 'Escape') { e.preventDefault(); this.tablePickerOpen = false; }
+                    return;
+                }
                 if (this.confirmOpen) {
                     if (e.key === 'Escape') { e.preventDefault(); this.confirmClear(false); }
                     if (e.key === 'Enter') { e.preventDefault(); this.confirmClear(true); }
@@ -298,6 +390,8 @@
             // ---------- checkout ----------
             async submit() {
                 if (!this.canSubmit) return;
+                // Makan di tempat tanpa meja: langsung buka pemilih meja.
+                if (this.needsTable && !this.selectedTable) return this.openTablePicker();
                 this.saving = true;
                 try {
                     const result = await this.$wire.checkout(
@@ -308,12 +402,15 @@
                         this.customer || null,
                         this.notes || null,
                         this.saleId,
+                        this.hasFnb ? this.orderType : null,
+                        this.needsTable ? Number(this.tableId) : null,
                     );
                     if (result?.ok) {
                         const change = this.payment === 'tunai' ? this.change : 0;
                         this.toast(result.message + (change > 0 ? ` Kembalian ${this.money(change)}.` : ''), 'success');
                         if (result.catalog) this.catalog = result.catalog;
                         if (result.recent) this.recent = result.recent;
+                        if (result.tables) this.tables = result.tables;
                         this.resetSale();
                         this.$nextTick(() => this.$refs.search?.focus());
                     } else {
@@ -339,7 +436,7 @@
 
 <div class="kpos"
      wire:ignore
-     x-data="kasirPos(@js($catalog), @js($categories), @js(\App\Filament\Kasir\Pages\Pos::PAYMENT_METHODS), @js($recentOrders))"
+     x-data="kasirPos(@js($catalog), @js($categories), @js(\App\Filament\Kasir\Pages\Pos::PAYMENT_METHODS), @js($recentOrders), @js($fnb), @js($tables), @js($preselectTable))"
      x-on:keydown.window="shortcut($event)">
     <div class="kpos-shell">
         {{-- ================= KIRI: cari, kategori, barang ================= --}}
@@ -407,7 +504,7 @@
                         <div class="kpos-order-avatar" x-text="order.no"></div>
                         <div style="min-width:0">
                             <div class="kpos-order-title" x-text="order.customer"></div>
-                            <div class="kpos-order-sub" x-text="order.items + ' barang · ' + money(order.total) + ' · ' + order.time"></div>
+                            <div class="kpos-order-sub" x-text="(order.order ? order.order + ' · ' : '') + order.items + ' barang · ' + money(order.total) + ' · ' + order.time"></div>
                         </div>
                         <span class="kpos-badge" x-bind:class="order.status"
                               x-text="({ pending: 'Menunggu', selesai: 'Selesai', voided: 'Batal' })[order.status] ?? order.status"></span>
@@ -433,6 +530,51 @@
             </div>
 
             <input type="text" class="kpos-input" x-model="customer" placeholder="Nama pelanggan (opsional)" maxlength="100">
+
+            {{-- FNB: makan di tempat / take away + nomor meja --}}
+            <template x-if="hasFnb">
+                <div class="kpos-fnb">
+                    <div class="kpos-seg kpos-ordertype" style="--n:2" x-show="fnb.takeAway">
+                        <button type="button" x-bind:class="{ 'is-on': orderType === 'dine_in' }" x-on:click="setOrderType('dine_in')">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75-1.5.75a3.354 3.354 0 0 1-3 0 3.354 3.354 0 0 0-3 0 3.354 3.354 0 0 1-3 0 3.354 3.354 0 0 0-3 0 3.354 3.354 0 0 1-3 0L3 16.5m15-3.379a48.474 48.474 0 0 0-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 0 1 3 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 0 1 6 13.12" /></svg>
+                            Makan di Tempat
+                        </button>
+                        <button type="button" x-bind:class="{ 'is-on': orderType === 'take_away' }" x-on:click="setOrderType('take_away')">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z" /></svg>
+                            Take Away
+                        </button>
+                    </div>
+                    <div x-show="needsTable">
+                        {{-- Tombol besar: meja terpilih / "Pilih Meja" → buka pemilih meja --}}
+                        <button type="button" class="kpos-tablebtn"
+                                x-bind:class="{ 'is-set': selectedTable, 'is-missing': cart.length && !selectedTable }"
+                                x-on:click="openTablePicker()">
+                            <template x-if="selectedTable">
+                                <span class="kpos-tablebtn-in">
+                                    <span class="kpos-tablebtn-no" x-text="selectedTable.number"></span>
+                                    <span class="kpos-tablebtn-txt">
+                                        <strong>Meja <span x-text="selectedTable.number"></span></strong>
+                                        <small x-text="(selectedTable.name ? selectedTable.name + ' · ' : '') + (selectedTable.occupied ? 'tambah pesanan' : 'meja kosong')"></small>
+                                    </span>
+                                    <span class="kpos-tablebtn-change">Ganti</span>
+                                </span>
+                            </template>
+                            <template x-if="!selectedTable">
+                                <span class="kpos-tablebtn-in">
+                                    <span class="kpos-tablebtn-no is-empty">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" /></svg>
+                                    </span>
+                                    <span class="kpos-tablebtn-txt">
+                                        <strong>Pilih Meja</strong>
+                                        <small x-text="tables.length ? freeTableCount + ' meja kosong dari ' + tables.length : 'Belum ada meja aktif'"></small>
+                                    </span>
+                                </span>
+                            </template>
+                        </button>
+                        <div class="kpos-order-sub" style="margin-top:4px" x-show="!tables.length">Belum ada meja aktif. Minta admin menambah di Master Meja.</div>
+                    </div>
+                </div>
+            </template>
             </div>
 
             <div class="kpos-lines" x-show="cart.length">
@@ -521,7 +663,49 @@
                 <span x-show="!saving">Simpan Transaksi</span>
                 <span x-show="saving">Menyimpan…</span>
             </button>
+            <div class="kpos-hint" x-show="needsTable && cart.length && !selectedTable" style="color:var(--danger)">Pilih meja dulu · tekan Simpan untuk membuka daftar meja</div>
             <div class="kpos-hint">Ctrl+Enter untuk simpan</div>
+            </div>
+        </div>
+
+        {{-- ================= Pemilih meja (tombol besar) ================= --}}
+        <div class="kpos-modal" x-show="tablePickerOpen" x-cloak x-transition.opacity
+             x-on:click.self="tablePickerOpen = false" role="dialog" aria-modal="true" style="display:none">
+            <div class="kpos-picker" x-show="tablePickerOpen" x-transition.scale.95>
+                <div class="kpos-picker-head">
+                    <div>
+                        <div class="kpos-modal-title" style="text-align:left">Pilih Meja</div>
+                        <div class="kpos-order-sub" x-text="freeTableCount + ' kosong · ' + (tables.length - freeTableCount) + ' terisi'"></div>
+                    </div>
+                    <button type="button" class="kpos-icon-btn" style="width:44px;height:44px" title="Tutup (Esc)" x-on:click="tablePickerOpen = false">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                <div class="kpos-picker-tools">
+                    <input type="text" class="kpos-input" x-ref="tableSearch" x-model="tableSearch"
+                           x-on:keydown.enter.prevent="pickTableFromSearch()"
+                           placeholder="Ketik nomor meja lalu Enter" autocomplete="off">
+                    <div class="kpos-seg" style="--n:3; min-width: 240px">
+                        <button type="button" x-bind:class="{ 'is-on': tableFilter === 'all' }" x-on:click="tableFilter = 'all'">Semua</button>
+                        <button type="button" x-bind:class="{ 'is-on': tableFilter === 'free' }" x-on:click="tableFilter = 'free'">Kosong</button>
+                        <button type="button" x-bind:class="{ 'is-on': tableFilter === 'busy' }" x-on:click="tableFilter = 'busy'">Terisi</button>
+                    </div>
+                </div>
+                <div class="kpos-picker-grid">
+                    <template x-for="t in pickerTables" x-bind:key="t.id">
+                        <button type="button" class="kpos-tile"
+                                x-bind:class="{ 'is-busy': t.occupied, 'is-free': !t.occupied, 'is-selected': t.id === tableId }"
+                                x-on:click="pickTable(t)">
+                            <span class="kpos-tile-no" x-text="t.number"></span>
+                            <span class="kpos-tile-name" x-text="t.name || ' '"></span>
+                            <span class="kpos-tile-status" x-text="t.occupied ? 'Terisi · tambah pesanan' : 'Kosong'"></span>
+                            <span class="kpos-tile-check" x-show="t.id === tableId">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                            </span>
+                        </button>
+                    </template>
+                    <div class="kpos-empty" x-show="!pickerTables.length">Meja tidak ditemukan.</div>
+                </div>
             </div>
         </div>
 
